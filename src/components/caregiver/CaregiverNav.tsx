@@ -1,0 +1,330 @@
+import React, { useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import { 
+  User, 
+  Bot, 
+  Heart, 
+  TrendingUp, 
+  Bell, 
+  Menu, 
+  X, 
+  Sprout, 
+  Home, 
+  ArrowRight,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
+import { CaregiverScreen } from '../../types';
+import { audio } from '../../utils/audio';
+
+// The 5 caregiver options with corrected spelling
+const caregiverSliderItems: { 
+  screen: CaregiverScreen; 
+  label: string; 
+  number: string;
+  icon: React.FC<{ className?: string }>; 
+  description: string;
+}[] = [
+  { 
+    screen: 'patient_profile', 
+    number: '1.', 
+    label: 'Patient Details', 
+    icon: User, 
+    description: 'Personal details, routine schedule & quiet hours' 
+  },
+  { 
+    screen: 'knowledge_assistant', 
+    number: '2.', 
+    label: 'Knowledge Assistant', 
+    icon: Bot, 
+    description: 'AI dementia care advice & guidance' 
+  },
+  { 
+    screen: 'memories', 
+    number: '3.', 
+    label: 'Add Memories', 
+    icon: Heart, 
+    description: 'Family photos, stories & loved ones' 
+  },
+  { 
+    screen: 'alerts', 
+    number: '4.', 
+    label: 'Alerts', 
+    icon: Bell, 
+    description: 'Missed meds, emergency alerts & notices' 
+  },
+  { 
+    screen: 'progress', 
+    number: '5.', 
+    label: 'Weekly Engagement & Improvement Graph', 
+    icon: TrendingUp, 
+    description: 'Active minutes & 4-week cognitive curves' 
+  },
+];
+
+export const CaregiverNav: React.FC = () => {
+  const { caregiverScreen, setCaregiverScreen, alerts, setRole, setPatientScreen, device } = useApp();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isMobile = device === 'mobile';
+
+  const unreadAlerts = alerts.filter(a => !a.resolved).length;
+
+  const handleNavClick = (screen: CaregiverScreen) => {
+    audio.playGentleChime();
+    setCaregiverScreen(screen);
+    setIsDrawerOpen(false);
+  };
+
+  const handleSwitchToPatient = () => {
+    audio.playGentleChime();
+    setIsDrawerOpen(false);
+    setRole('patient');
+    setPatientScreen('home');
+  };
+
+  return (
+    <>
+      {/* Desktop & Tablet Sidebar */}
+      {!isMobile && (
+        <aside className="hidden md:flex w-56 lg:w-64 flex-col bg-[#FAF8F5] border-r border-[#E7E3D8] p-3 lg:p-4 space-y-4 flex-shrink-0 select-none">
+          {/* Brand Header */}
+          <div className="flex items-center gap-2.5 px-2 pb-3 border-b border-[#E7E3D8]">
+            <div className="w-8 h-8 rounded-full bg-[#E9F0E1] flex items-center justify-center text-[#344E2E] flex-shrink-0">
+              <Sprout className="w-4 h-4 text-[#4E7037]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="font-serif font-extrabold text-sm text-[#2B4420] tracking-wider block uppercase">SANGPA</span>
+              <span className="text-[10px] text-stone-500 block truncate">Caregiver Portal</span>
+            </div>
+          </div>
+
+          <nav className="flex-1 space-y-1 pr-1 overflow-y-auto min-w-0">
+            {/* Overview / Summary button */}
+            <button
+              onClick={() => handleNavClick('overview')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer mb-2 ${
+                caregiverScreen === 'overview'
+                  ? 'bg-[#DCE7D3] text-[#24421C] font-bold shadow-2xs'
+                  : 'text-stone-700 hover:bg-[#EFECE4]'
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Home className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">Patient Summary</span>
+              </div>
+            </button>
+
+            <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 px-3 py-1 block">
+              Caregiver Navigation
+            </span>
+
+            {/* The 5 Slider Items */}
+            {caregiverSliderItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = caregiverScreen === item.screen;
+              const badgeCount = item.screen === 'alerts' ? unreadAlerts : 0;
+
+              return (
+                <button
+                  key={item.screen}
+                  onClick={() => handleNavClick(item.screen)}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-[#DCE7D3] text-[#24421C] font-bold shadow-2xs'
+                      : 'text-stone-700 hover:bg-[#EFECE4]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Icon className="w-4 h-4 flex-shrink-0 text-[#4E7037]" />
+                    <span className="truncate">{item.number} {item.label}</span>
+                  </div>
+                  {badgeCount > 0 && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500 text-white flex-shrink-0">
+                      {badgeCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-2.5 bg-white rounded-2xl border border-[#E7E3D8] text-xs text-stone-600 shadow-2xs">
+            <div className="flex items-center justify-between font-bold text-stone-900 gap-1">
+              <span className="truncate text-xs">Patient Maya Devi</span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Online
+              </span>
+            </div>
+            <p className="text-[10px] text-stone-500 mt-1 truncate">Battery: 86% • Active 10:42 AM</p>
+          </div>
+        </aside>
+      )}
+
+      {/* Mobile Top Header Bar (3 small lines on extreme left corner) */}
+      <header className={`${isMobile ? 'block' : 'md:hidden'} bg-[#FAF8F5] border-b border-[#E7E3D8] px-3.5 py-2.5 sticky top-0 z-30 shadow-2xs select-none`}>
+        <div className="flex items-center justify-between">
+          {/* Extreme Left: 3 Small Lines Hamburger Button & SANGPA Logo */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                audio.playGentleChime();
+                setIsDrawerOpen(true);
+              }}
+              className="p-1.5 -ml-1 rounded-xl bg-white hover:bg-[#EAE6DC] text-[#2F4A24] border border-[#D5DFC9] shadow-2xs transition-colors cursor-pointer active:scale-95"
+              title="Open Navigation Menu"
+              aria-label="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5 stroke-[2.4]" />
+            </button>
+
+            {/* SANGPA Logo with leaf */}
+            <div 
+              onClick={() => handleNavClick('overview')}
+              className="flex items-center gap-1 cursor-pointer"
+            >
+              <Sprout className="w-4 h-4 text-[#4E7037]" />
+              <span className="text-sm font-black tracking-wider text-[#2B4420] uppercase font-serif">
+                SANGPA
+              </span>
+            </div>
+          </div>
+
+          {/* Extreme Right: Patient Status Pill */}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 bg-[#EAF2E6] px-2 py-0.5 rounded-full border border-[#D5DFC9]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+              <span>Maya Devi In Sync</span>
+            </span>
+
+            {unreadAlerts > 0 && (
+              <button
+                onClick={() => handleNavClick('alerts')}
+                className="p-1.5 rounded-full bg-rose-100 text-rose-700 relative hover:bg-rose-200 transition-colors cursor-pointer"
+                title="Care Alerts"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-600 ring-1 ring-white" />
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Slide-out Drawer (Opens strictly on the mobile screen container with absolute positioning) */}
+      {isDrawerOpen && (
+        <div className="absolute inset-0 z-50 flex select-none overflow-hidden animate-in fade-in duration-200">
+          {/* Backdrop Overlay inside phone frame */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity cursor-pointer"
+            onClick={() => setIsDrawerOpen(false)}
+          />
+
+          {/* Drawer Panel sliding from the left inside the mobile screen */}
+          <div className="relative w-[85%] max-w-[320px] h-full bg-[#FAF8F5] shadow-2xl flex flex-col z-50 border-r border-[#E7E3D8] overflow-y-auto animate-in slide-in-from-left duration-200">
+            {/* Drawer Top Header */}
+            <div className="p-4 border-b border-[#E7E3D8] bg-[#F4F1EA]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <Sprout className="w-5 h-5 text-[#4E7037]" />
+                  <span className="text-base font-black tracking-widest text-[#2B4420] uppercase font-serif">
+                    SANGPA
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="p-1.5 rounded-full bg-[#E8E4D9] hover:bg-[#DDD8CA] text-stone-700 transition-colors cursor-pointer active:scale-95"
+                  title="Close Menu"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Patient Identity Badge */}
+              <div 
+                onClick={() => handleNavClick('overview')}
+                className="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-[#E7E3D8] shadow-2xs cursor-pointer hover:bg-[#FAF8F5] transition-all"
+              >
+                <div>
+                  <h4 className="text-xs font-black text-stone-900 truncate">Maya Devi (Kamala Dadi)</h4>
+                  <p className="text-[10px] text-[#4E7037] font-semibold truncate">🟢 Doing Well • MCI Stage 2</p>
+                </div>
+                <span className="text-[10px] font-bold text-[#344E2E] bg-[#EAF2E6] px-2 py-0.5 rounded-full">
+                  Overview
+                </span>
+              </div>
+            </div>
+
+            {/* ONLY The 5 Slider Options requested by the user */}
+            <div className="p-3 flex-1 space-y-2 overflow-y-auto">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500 px-2 pt-1 block">
+                Caregiver Options
+              </span>
+
+              {caregiverSliderItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = caregiverScreen === item.screen;
+                const badgeCount = item.screen === 'alerts' ? unreadAlerts : 0;
+
+                return (
+                  <button
+                    key={item.screen}
+                    onClick={() => handleNavClick(item.screen)}
+                    className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all cursor-pointer active:scale-98 ${
+                      isActive
+                        ? 'bg-[#DCE7D3] text-[#24421C] font-extrabold shadow-xs border border-[#CCD8C4]'
+                        : 'bg-white text-stone-800 hover:bg-[#EFECE4] border border-[#EBE6DC] shadow-2xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`p-2 rounded-xl flex-shrink-0 ${
+                        isActive 
+                          ? 'bg-[#2B4420] text-white' 
+                          : 'bg-[#EAF2E6] text-[#345228]'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-bold block truncate text-[#243B1D]">
+                          {item.number} {item.label}
+                        </span>
+                        <span className="text-[10px] text-stone-500 block truncate">
+                          {item.description}
+                        </span>
+                      </div>
+                    </div>
+
+                    {badgeCount > 0 ? (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500 text-white flex-shrink-0 ml-1">
+                        {badgeCount}
+                      </span>
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-stone-400 flex-shrink-0 ml-1" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Switch to Patient Companion at Bottom */}
+            <div className="p-3 border-t border-[#E7E3D8] bg-[#F4F1EA]">
+              <button
+                onClick={handleSwitchToPatient}
+                className="w-full py-2.5 px-3 rounded-2xl bg-[#344E2E] hover:bg-[#2B4420] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Switch to Patient Screen</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export const CaregiverMobileBottomNav: React.FC = () => {
+  return null;
+};
+
