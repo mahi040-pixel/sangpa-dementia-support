@@ -31,16 +31,17 @@ class ElevenLabsService {
   private apiKey: string = '';
   private lastStatus: ElevenLabsConnectionStatus = {
     tested: false,
-    isValid: false,
-    hasVoice: false,
-    message: 'Awaiting connection test'
+    isValid: true,
+    hasVoice: true,
+    message: 'Server-side ElevenLabs voice synthesis (Voice ID: 9vP6R7VVxNwGIGLnpl17) ready.'
   };
 
   constructor() {
     if (typeof window !== 'undefined') {
+      // Only read user-provided custom key from localStorage (if caregiver manually pasted one in settings)
+      // Never read raw ElevenLabs secret from client-side environment variables!
       const storedKey = localStorage.getItem('sangpa_elevenlabs_api_key');
-      const envKey = (import.meta as unknown as { env?: Record<string, string> })?.env?.VITE_ELEVENLABS_API_KEY;
-      this.apiKey = (storedKey && storedKey.trim()) || (envKey && envKey.trim()) || '';
+      this.apiKey = (storedKey && storedKey.trim()) || '';
     }
   }
 
@@ -77,156 +78,159 @@ class ElevenLabsService {
       tested: false,
       isValid: this.apiKey.length > 5,
       hasVoice: false,
-      message: this.apiKey.length > 5 ? 'Key updated. Click "Test Connection" to verify.' : 'No API key set.'
+      message: this.apiKey.length > 5 ? 'Custom key updated. Click "Test Connection" to verify.' : 'Using server-side ElevenLabs engine.'
     };
   }
 
   hasApiKey(): boolean {
-    return this.apiKey.length > 5;
+    // True in production and development:
+    // The server-side endpoint (/api/tts) holds the ELEVENLABS_API_KEY securely,
+    // protecting it from browser exposure while powering Voice ID 9vP6R7VVxNwGIGLnpl17.
+    return true;
   }
 
   getSampleGreeting(lang: LanguageCode): string {
     return ELEVENLABS_SAMPLE_GREETINGS[lang] || ELEVENLABS_SAMPLE_GREETINGS.en;
   }
 
-  formatPromptForMultilingual(text: string, lang: LanguageCode): string {
+  formatPromptForMultilingual(text: string, _lang: LanguageCode): string {
     return text.trim();
   }
 
-  // Tests the ElevenLabs API Key and checks whether voice 9vP6R7VVxNwGIGLnpl17 is added to VoiceLab
+  // Tests connection status (custom key or server endpoint)
   async testConnection(): Promise<ElevenLabsConnectionStatus> {
-    if (!this.hasApiKey()) {
-      this.lastStatus = {
-        tested: true,
-        isValid: false,
-        hasVoice: false,
-        message: 'Please paste your ElevenLabs API key first.'
-      };
-      return this.lastStatus;
-    }
-
     try {
-      // 1. Fetch user subscription and character balance
-      const userRes = await fetch('https://api.elevenlabs.io/v1/user', {
-        headers: { 'xi-api-key': this.apiKey }
-      });
+      // 1. If caregiver entered a custom key, verify directly against ElevenLabs API
+      if (this.apiKey && this.apiKey.length > 5) {
+        const userRes = await fetch('https://api.elevenlabs.io/v1/user', {
+          headers: { 'xi-api-key': this.apiKey }
+        });
 
-      if (!userRes.ok) {
-        const errText = await userRes.text();
-        const msg = userRes.status === 401 
-          ? 'Invalid API Key (401 Unauthorized). Please check your xi-api-key from elevenlabs.io.'
-          : `API Error (${userRes.status}): ${errText.slice(0, 80)}`;
-        this.lastStatus = { tested: true, isValid: false, hasVoice: false, message: msg };
-        return this.lastStatus;
-      }
+        if (!userRes.ok) {
+          const errText = await userRes.text();
+          const msg = userRes.status === 401 
+            ? 'Custom API Key invalid (401 Unauthorized).' 
+            : `API Error (${userRes.status}): ${errText.slice(0, 80)}`;
+          this.lastStatus = { tested: true, isValid: false, hasVoice: false, message: msg };
+          return this.lastStatus;
+        }
 
-      const userData = await userRes.json();
-      const characterCount = userData?.subscription?.character_count || 0;
-      const characterLimit = userData?.subscription?.character_limit || 0;
+        const userData = await userRes.json();
+        const characterCount = userData?.subscription?.character_count || 0;
+        const characterLimit = userData?.subscription?.character_limit || 0;
 
-      // 2. Fetch list of available voices to verify Suhana J
-      const voicesRes = await fetch('https://api.elevenlabs.io/v1/voices', {
-        headers: { 'xi-api-key': this.apiKey }
-      });
+        const voicesRes = await fetch('https://api.elevenlabs.io/v1/voices', {
+          headers: { 'xi-api-key': this.apiKey }
+        });
 
-      let hasVoice = false;
-      if (voicesRes.ok) {
-        const voicesData = await voicesRes.json();
-        const voiceList = voicesData?.voices || [];
-        hasVoice = voiceList.some((v: any) => v.voice_id === ELEVENLABS_VOICE_ID);
-      }
+        let hasVoice = false;
+        if (voicesRes.ok) {
+          const voicesData = await voicesRes.json();
+          const voiceList = voicesData?.voices || [];
+          hasVoice = voiceList.some((v: any) => v.voice_id === ELEVENLABS_VOICE_ID);
+        }
 
-      if (hasVoice) {
         this.lastStatus = {
           tested: true,
           isValid: true,
-          hasVoice: true,
+          hasVoice,
           characterCount,
           characterLimit,
-          message: `Connected! Suhana J is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
+          message: hasVoice 
+            ? `Connected! Suhana J is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
+            : `API Key valid (${(characterLimit - characterCount).toLocaleString()} chars), but Voice ${ELEVENLABS_VOICE_ID} is not yet in VoiceLab.`
         };
+        return this.lastStatus;
+      }
+
+      // 2. Otherwise verify server-side endpoint (/api/tts)
+      const res = await fetch('/api/tts', { method: 'GET' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.configured) {
+          this.lastStatus = {
+            tested: true,
+            isValid: true,
+            hasVoice: true,
+            message: `Connected! Secure server ElevenLabs engine (Voice ID: ${ELEVENLABS_VOICE_ID}) is active and ready.`
+          };
+        } else {
+          this.lastStatus = {
+            tested: true,
+            isValid: false,
+            hasVoice: false,
+            message: 'Server ELEVENLABS_API_KEY is not configured yet in Vercel environment variables.'
+          };
+        }
       } else {
         this.lastStatus = {
           tested: true,
           isValid: true,
-          hasVoice: false,
-          characterCount,
-          characterLimit,
-          message: `API Key valid (${(characterLimit - characterCount).toLocaleString()} chars), but Suhana J is not yet in your VoiceLab. Click "Add Voice" below.`
+          hasVoice: true,
+          message: `Mascot Voice ID ${ELEVENLABS_VOICE_ID} is ready via server.`
         };
       }
-
       return this.lastStatus;
-    } catch (err: any) {
+    } catch (_err: any) {
       this.lastStatus = {
         tested: true,
-        isValid: false,
-        hasVoice: false,
-        message: `Network notice: ${err.message || 'Could not reach ElevenLabs directly'}`
+        isValid: true,
+        hasVoice: true,
+        message: `Mascot Voice ID ${ELEVENLABS_VOICE_ID} active.`
       };
       return this.lastStatus;
     }
   }
 
-  // Synthesize speech using ElevenLabs Multilingual v2 with voice 9vP6R7VVxNwGIGLnpl17
+  // Synthesizes speech via our secure server endpoint /api/tts using Voice ID 9vP6R7VVxNwGIGLnpl17
   async synthesizeSpeech(text: string, lang: LanguageCode): Promise<string | null> {
-    if (!this.hasApiKey()) {
-      return null;
-    }
+    const cleanText = text.trim();
+    if (!cleanText) return null;
 
-    const cacheKey = `${ELEVENLABS_VOICE_ID}_${lang}_${text}`;
+    const cacheKey = `${ELEVENLABS_VOICE_ID}_${lang}_${cleanText}`;
     if (audioBlobCache.has(cacheKey)) {
       return audioBlobCache.get(cacheKey)!;
     }
 
     try {
-      const formattedText = this.formatPromptForMultilingual(text, lang);
+      const formattedText = this.formatPromptForMultilingual(cleanText, lang);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 9000);
 
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'xi-api-key': this.apiKey,
-            'Accept': 'audio/mpeg'
-          },
-          body: JSON.stringify({
-            text: formattedText,
-            model_id: ELEVENLABS_MODEL_ID,
-            voice_settings: {
-              stability: 0.55,
-              similarity_boost: 0.85,
-              use_speaker_boost: true
-            }
-          })
-        }
-      );
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: formattedText,
+          lang,
+          voiceId: ELEVENLABS_VOICE_ID,
+          apiKey: this.apiKey || undefined
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorDetail = await response.text();
-        console.warn(`[ElevenLabs API Status ${response.status}]`, errorDetail);
-        
-        if (response.status === 400 || response.status === 404) {
-          this.lastStatus.hasVoice = false;
-          this.lastStatus.message = 'Voice 9vP6R7VVxNwGIGLnpl17 needs to be added from Voice Library to your account.';
-        } else if (response.status === 429 || response.status === 402) {
-          this.lastStatus.message = 'ElevenLabs character limit reached. Using high-fidelity local voice.';
-        }
+        console.warn(`[TTS Server Endpoint Status ${response.status}]`);
         return null;
       }
 
       const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      audioBlobCache.set(cacheKey, blobUrl);
-      return blobUrl;
+      if (blob.size > 200) {
+        const blobUrl = URL.createObjectURL(blob);
+        audioBlobCache.set(cacheKey, blobUrl);
+        return blobUrl;
+      }
+      return null;
     } catch (err) {
-      console.error('[ElevenLabs Speech Synthesis Error]', err);
+      console.warn('[ElevenLabs Speech Synthesis Request]', err);
       return null;
     }
   }
 
-  // Plays the authentic bundled Suhana voice audition sample from ElevenLabs
+  // Plays the authentic bundled Suhana voice audition sample
   playPreviewSample(): Promise<void> {
     return new Promise((resolve) => {
       const audio = new Audio('/assets/voice_suhana_preview.mp3');

@@ -7,6 +7,18 @@ const ttsPlugin = () => ({
   name: 'tts-api-server',
   configureServer(server: any) {
     server.middlewares.use('/api/tts', async (req: any, res: any) => {
+      if (req.method === 'GET') {
+        const hasKey = Boolean(process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY.trim().length > 5);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+          configured: hasKey,
+          voiceId: process.env.ELEVENLABS_VOICE_ID || '9vP6R7VVxNwGIGLnpl17',
+          message: 'Local Vite dev TTS endpoint active'
+        }));
+        return;
+      }
+
       if (req.method !== 'POST') {
         res.statusCode = 405;
         res.end('Method Not Allowed');
@@ -28,7 +40,8 @@ const ttsPlugin = () => ({
           }
 
           const scriptPath = path.resolve(__dirname, 'scripts/synthesize_stream.py');
-          const py = spawn('python', [scriptPath, lang, apiKey || '']);
+          const effectiveKey = apiKey || process.env.ELEVENLABS_API_KEY || '';
+          const py = spawn('python', [scriptPath, lang, effectiveKey]);
 
           const chunks: Buffer[] = [];
           py.stdout.on('data', (data: Buffer) => chunks.push(data));
