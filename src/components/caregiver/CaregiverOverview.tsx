@@ -14,7 +14,9 @@ import {
   Menu,
   Sparkles,
   Wifi,
-  BatteryCharging
+  BatteryCharging,
+  UtensilsCrossed,
+  ChevronRight
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { getCaregiverI18n } from '../../utils/caregiverLocalization';
@@ -27,7 +29,8 @@ export const CaregiverOverview: React.FC = () => {
     speakMascot,
     setRole,
     setPatientScreen,
-    language
+    language,
+    dietPlan
   } = useApp();
 
   const [nudgeSent, setNudgeSent] = useState(false);
@@ -239,6 +242,74 @@ export const CaregiverOverview: React.FC = () => {
               );
             })}
           </div>
+        </div>
+
+        {/* 2B. Today's Nutrition Section */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E7E3D8] shadow-xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-[#EAF2E6] text-[#345228] flex items-center justify-center flex-shrink-0">
+                <UtensilsCrossed className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#243B1D]">
+                  Today's Nutrition
+                </h3>
+                <p className="text-[10px] text-stone-500">
+                  Approved by {dietPlan.approvedBy.split(' (')[0]}
+                </p>
+              </div>
+            </div>
+
+            <span className="text-[11px] font-bold text-emerald-800 bg-[#EAF2E6] px-2.5 py-0.5 rounded-full border border-[#D5DFC9]">
+              Hydration: {dietPlan.hydrationCurrent} / {dietPlan.hydrationTarget} glasses
+            </span>
+          </div>
+
+          {/* Meals Status List */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            {dietPlan.meals.map(m => {
+              const isDone = m.status === 'completed';
+              const isPartial = m.status === 'partially_eaten';
+              const isSkipped = m.status === 'skipped';
+              return (
+                <div key={m.id} className="p-2.5 rounded-2xl bg-[#FAF8F5] border border-[#EBE6DC] text-center space-y-1">
+                  <span className="text-xs font-bold text-stone-800 block capitalize">{m.name}</span>
+                  <div className="flex items-center justify-center gap-1 text-[11px] font-bold">
+                    {isDone ? (
+                      <span className="text-emerald-700 flex items-center gap-1">
+                        <span>✓</span> Completed
+                      </span>
+                    ) : isPartial ? (
+                      <span className="text-amber-700 flex items-center gap-1">
+                        <span>◐</span> Partial
+                      </span>
+                    ) : isSkipped ? (
+                      <span className="text-rose-700 flex items-center gap-1">
+                        <span>✕</span> Skipped
+                      </span>
+                    ) : (
+                      <span className="text-stone-400 flex items-center gap-1">
+                        <span>○</span> Upcoming
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Action Button: View Diet Plan */}
+          <button
+            onClick={() => {
+              audio.playGentleChime();
+              setCaregiverScreen('diet');
+            }}
+            className="w-full py-2.5 px-3 rounded-2xl bg-[#EAF2E6] hover:bg-[#DCE7D3] text-[#24421C] font-extrabold text-xs flex items-center justify-center gap-1.5 border border-[#CCD8C4] transition-all active:scale-98 cursor-pointer shadow-2xs"
+          >
+            <span>View Diet Plan</span>
+            <ChevronRight className="w-4 h-4 text-[#3E6530]" />
+          </button>
         </div>
 
         {/* 3. Quick Direct Patient Contact Actions */}

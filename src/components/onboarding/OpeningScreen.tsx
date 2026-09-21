@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Volume2, 
@@ -13,7 +13,10 @@ import { audio } from '../../utils/audio';
 import { LanguageCode } from '../../types';
 import { translations } from '../../utils/mockData';
 
+import { CaregiverLoginScreen } from '../caregiver/CaregiverLoginScreen';
+
 export const OpeningScreen: React.FC = () => {
+  const [showCaregiverLogin, setShowCaregiverLogin] = useState(false);
   const {
     setRole,
     setPatientScreen,
@@ -91,9 +94,12 @@ export const OpeningScreen: React.FC = () => {
   const handleSelectCaregiver = () => {
     audio.stopSpeaking();
     audio.playCuteChime();
-    setRole('caregiver');
-    setCaregiverScreen('overview');
+    setShowCaregiverLogin(true);
   };
+
+  if (showCaregiverLogin) {
+    return <CaregiverLoginScreen />;
+  }
 
   return (
     <div className="flex-1 flex flex-col justify-between p-5 sm:p-8 max-w-xl mx-auto w-full text-center">

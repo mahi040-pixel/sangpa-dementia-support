@@ -13,7 +13,12 @@ import {
   CognitiveGame, 
   MemoryItem, 
   CaregiverAlert, 
-  ContactItem 
+  ContactItem,
+  CaregiverRole,
+  DietMealItem,
+  DietPlan,
+  DietSuggestion,
+  CareTeamMember
 } from '../types';
 import { 
   translations, 
@@ -87,6 +92,26 @@ interface AppContextType {
   setVoiceModalOpen: (v: boolean) => void;
   fallbackCallActive: boolean;
   setFallbackCallActive: (v: boolean) => void;
+
+  caregiverRole: CaregiverRole;
+  setCaregiverRole: (r: CaregiverRole) => void;
+  caregiverUser: { name: string; role: CaregiverRole; title: string };
+  isCaregiverAuthenticated: boolean;
+  loginCaregiver: (role: CaregiverRole, name?: string) => void;
+  logoutCaregiver: () => void;
+
+  dietPlan: DietPlan;
+  updateDietPlan: (p: DietPlan) => void;
+  updateMealStatus: (mealId: 'breakfast' | 'lunch' | 'snack' | 'dinner', status: DietMealItem['status'], observation?: string) => void;
+  incrementHydration: () => void;
+
+  dietSuggestions: DietSuggestion[];
+  addDietSuggestion: (suggestion: Omit<DietSuggestion, 'id' | 'submittedAt' | 'status'>) => void;
+  reviewDietSuggestion: (id: string, decision: 'approved' | 'modified' | 'rejected', doctorResponse?: string, modifiedPlanText?: string) => void;
+
+  careTeam: CareTeamMember[];
+  addCareTeamMember: (member: Omit<CareTeamMember, 'id'>) => void;
+  removeCareTeamMember: (id: string) => void;
   
   t: (key: string) => string;
 }
@@ -116,6 +141,100 @@ const getInitialDevice = (): DeviceViewport => {
   return 'desktop';
 };
 
+const initialDietPlan: DietPlan = {
+  id: 'diet-plan-maya',
+  approvedBy: 'Dr. Anita Verma (MD, Geriatric Medicine)',
+  lastUpdated: 'Today, 08:00 AM',
+  hydrationTarget: 6,
+  hydrationCurrent: 4,
+  guidelines: 'MIND Diet Protocol: Neuroprotective antioxidant-rich meals, low sodium (<1500mg), high omega-3, soft textures for safe swallowing, and fixed hydration intervals.',
+  restrictions: ['Low Sodium / No Table Salt', 'Avoid Refined Sugar', 'Avoid Hard/Crunchy Nuts (crush or powder only)', 'No caffeine after 4:00 PM'],
+  meals: [
+    {
+      id: 'breakfast',
+      name: 'Breakfast',
+      time: '08:30 AM',
+      items: ['Warm Moong Dal Khichdi with Soft Spinach', 'Crushed Walnuts (1 tsp)', 'Warm Cow Milk (150ml)'],
+      portion: '1 medium bowl (approx 200g)',
+      notes: 'Light on rock salt. Soft consistency for easy swallowing. Take BP medicine after meal.',
+      status: 'completed',
+      nurseObservation: 'Finished full portion without coughing. Took Amlodipine 5mg at 08:45 AM.',
+      loggedAt: '08:45 AM'
+    },
+    {
+      id: 'lunch',
+      name: 'Lunch',
+      time: '01:00 PM',
+      items: ['Steamed Soft Rice with Toor Dal', 'Mashed Bottle Gourd (Lauki)', 'Fresh Curd (Dahi)'],
+      portion: '1.5 cups dal-rice, 1 small cup curd',
+      notes: 'Ensure curd is at room temperature. High probiotic support for gentle digestion.',
+      status: 'completed',
+      nurseObservation: 'Ate well, enjoyed curd. Completed 1 glass of water afterwards.',
+      loggedAt: '01:35 PM'
+    },
+    {
+      id: 'snack',
+      name: 'Snack',
+      time: '04:30 PM',
+      items: ['Warm Chamomile & Tulsi Tea', '2 Roasted Ragi Biscuits', 'Small Ripe Papaya Cubes'],
+      portion: '1 cup tea, 4-5 small papaya cubes',
+      notes: 'Avoid refined sugar. Soothing warmth to prevent late-afternoon sundowning agitation.',
+      status: 'upcoming'
+    },
+    {
+      id: 'dinner',
+      name: 'Dinner',
+      time: '08:00 PM',
+      items: ['Light Vegetable Stew with Soft Carrots', '1 Soft Whole Wheat Phulka with Ghee'],
+      portion: '1 small bowl stew, 1 phulka',
+      notes: 'Must be completed at least 1.5 hours before bedtime. Night medicine at 08:45 PM.',
+      status: 'upcoming'
+    }
+  ]
+};
+
+const initialDietSuggestions: DietSuggestion[] = [
+  {
+    id: 'sug-1',
+    submittedByRole: 'family',
+    submittedByName: 'Rohan Sharma (Son)',
+    submittedAt: 'Today, 09:15 AM',
+    mealId: 'breakfast',
+    message: 'Grandma prefers sliced ripe banana with breakfast instead of crushed walnuts.',
+    status: 'pending'
+  }
+];
+
+const initialCareTeam: CareTeamMember[] = [
+  {
+    id: 'ct-1',
+    name: 'Dr. Anita Verma',
+    role: 'Doctor',
+    specialty: 'Primary Geriatrician & Neurologist',
+    status: 'Active • Lead Attending',
+    phone: '+91 11-4567-8900 (Ext 402)',
+    email: 'dr.anita.verma@apollo-geriatrics.org'
+  },
+  {
+    id: 'ct-2',
+    name: 'Nurse Priya Sharma',
+    role: 'Nurse',
+    specialty: 'Home Care & Dementia Attendant',
+    status: 'On Duty • Morning Shift',
+    phone: '+91 98765-43210',
+    email: 'priya.sharma@homecarehealth.in'
+  },
+  {
+    id: 'ct-3',
+    name: 'Rohan Sharma',
+    role: 'Family Member',
+    specialty: 'Patient’s Son & Primary Caregiver',
+    status: 'Emergency Contact 1 • Local',
+    phone: '+91 98111-22334',
+    email: 'rohan.sharma@sangpacare.org'
+  }
+];
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -123,6 +242,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [device, setDevice] = useState<DeviceViewport>(getInitialDevice);
   const [patientScreen, setPatientScreen] = useState<PatientScreen>('home');
   const [caregiverScreen, setCaregiverScreen] = useState<CaregiverScreen>('overview');
+  
+  // Caregiver Role and Authentication
+  const [caregiverRole, setCaregiverRole] = useState<CaregiverRole>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sangpa_caregiver_role');
+      if (saved === 'doctor' || saved === 'nurse' || saved === 'family') return saved;
+    }
+    return 'doctor';
+  });
+
+  const [isCaregiverAuthenticated, setIsCaregiverAuthenticated] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sangpa_caregiver_auth') === 'true';
+    }
+    return false;
+  });
+
+  // Diet Plan & Suggestions State
+  const [dietPlan, setDietPlan] = useState<DietPlan>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sangpa_diet_plan');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+    }
+    return initialDietPlan;
+  });
+
+  const [dietSuggestions, setDietSuggestions] = useState<DietSuggestion[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sangpa_diet_suggestions');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+    }
+    return initialDietSuggestions;
+  });
+
+  // Care Team State
+  const [careTeam, setCareTeam] = useState<CareTeamMember[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sangpa_care_team');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+    }
+    return initialCareTeam;
+  });
+
+  const caregiverUser = {
+    name: caregiverRole === 'doctor' ? 'Dr. Anita Verma' : caregiverRole === 'nurse' ? 'Nurse Priya Sharma' : 'Rohan Sharma',
+    role: caregiverRole,
+    title: caregiverRole === 'doctor' ? 'Primary Geriatrician' : caregiverRole === 'nurse' ? 'Home Care Attendant' : 'Family Member (Son)'
+  };
   
   const [language, setLanguage] = useState<LanguageCode>('en');
   const [textScale, setTextScale] = useState<TextScale>('normal');
@@ -341,6 +514,160 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPendingSyncCount(0);
   };
 
+  const loginCaregiver = (targetRole: CaregiverRole, name?: string) => {
+    audio.playSuccessJingle();
+    setCaregiverRole(targetRole);
+    setIsCaregiverAuthenticated(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sangpa_caregiver_role', targetRole);
+      localStorage.setItem('sangpa_caregiver_auth', 'true');
+    }
+    setRole('caregiver');
+    setCaregiverScreen('overview');
+  };
+
+  const logoutCaregiver = () => {
+    audio.playGentleChime();
+    setIsCaregiverAuthenticated(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sangpa_caregiver_auth');
+    }
+    setRole('opening');
+  };
+
+  const updateDietPlan = (p: DietPlan) => {
+    setDietPlan(p);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sangpa_diet_plan', JSON.stringify(p));
+    }
+  };
+
+  const updateMealStatus = (mealId: 'breakfast' | 'lunch' | 'snack' | 'dinner', status: DietMealItem['status'], observation?: string) => {
+    setDietPlan(prev => {
+      const updatedMeals = prev.meals.map(m => {
+        if (m.id === mealId) {
+          return {
+            ...m,
+            status,
+            nurseObservation: observation !== undefined ? observation : m.nurseObservation,
+            loggedAt: status === 'completed' || status === 'partially_eaten' || status === 'skipped' ? 'Just now' : m.loggedAt
+          };
+        }
+        return m;
+      });
+      const newPlan = { ...prev, meals: updatedMeals, lastUpdated: 'Just now' };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_diet_plan', JSON.stringify(newPlan));
+      }
+      return newPlan;
+    });
+  };
+
+  const incrementHydration = () => {
+    audio.playCuteChime();
+    setDietPlan(prev => {
+      const nextCount = Math.min(prev.hydrationTarget + 2, prev.hydrationCurrent + 1);
+      const newPlan = { ...prev, hydrationCurrent: nextCount, lastUpdated: 'Just now' };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_diet_plan', JSON.stringify(newPlan));
+      }
+      return newPlan;
+    });
+  };
+
+  const addDietSuggestion = (sug: Omit<DietSuggestion, 'id' | 'submittedAt' | 'status'>) => {
+    audio.playSuccessJingle();
+    const newSug: DietSuggestion = {
+      ...sug,
+      id: `sug-${Date.now()}`,
+      submittedAt: 'Just now',
+      status: 'pending'
+    };
+    setDietSuggestions(prev => {
+      const updated = [newSug, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_diet_suggestions', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const reviewDietSuggestion = (
+    id: string, 
+    decision: 'approved' | 'modified' | 'rejected', 
+    doctorResponse?: string, 
+    modifiedPlanText?: string
+  ) => {
+    audio.playGentleChime();
+    setDietSuggestions(prev => {
+      const targetSug = prev.find(s => s.id === id);
+      const updated = prev.map(s => {
+        if (s.id === id) {
+          return {
+            ...s,
+            status: decision,
+            doctorResponse: doctorResponse || (decision === 'approved' ? 'Approved into clinical diet plan.' : decision === 'modified' ? 'Modified and added.' : 'Reviewed and kept existing balance.'),
+            reviewedAt: 'Just now'
+          };
+        }
+        return s;
+      });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_diet_suggestions', JSON.stringify(updated));
+      }
+      
+      // If approved or modified, also automatically update the meal in the diet plan!
+      if ((decision === 'approved' || decision === 'modified') && targetSug && targetSug.mealId && targetSug.mealId !== 'general') {
+        setDietPlan(currentPlan => {
+          const updatedMeals = currentPlan.meals.map(m => {
+            if (m.id === targetSug.mealId) {
+              const itemToAdd = modifiedPlanText || targetSug.message;
+              return {
+                ...m,
+                items: [...m.items, `★ ${itemToAdd}`],
+                notes: `${m.notes} (Doctor approved note: ${itemToAdd})`
+              };
+            }
+            return m;
+          });
+          const newPlan = { ...currentPlan, meals: updatedMeals, lastUpdated: 'Just now (Updated by Dr. Verma)' };
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sangpa_diet_plan', JSON.stringify(newPlan));
+          }
+          return newPlan;
+        });
+      }
+      
+      return updated;
+    });
+  };
+
+  const addCareTeamMember = (member: Omit<CareTeamMember, 'id'>) => {
+    audio.playGentleChime();
+    const newMember: CareTeamMember = {
+      ...member,
+      id: `ct-${Date.now()}`
+    };
+    setCareTeam(prev => {
+      const updated = [...prev, newMember];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_care_team', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
+  const removeCareTeamMember = (id: string) => {
+    audio.playGentleChime();
+    setCareTeam(prev => {
+      const updated = prev.filter(m => m.id !== id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sangpa_care_team', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -352,6 +679,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setPatientScreen,
         caregiverScreen,
         setCaregiverScreen,
+        caregiverRole,
+        setCaregiverRole,
+        caregiverUser,
+        isCaregiverAuthenticated,
+        loginCaregiver,
+        logoutCaregiver,
+        dietPlan,
+        updateDietPlan,
+        updateMealStatus,
+        incrementHydration,
+        dietSuggestions,
+        addDietSuggestion,
+        reviewDietSuggestion,
+        careTeam,
+        addCareTeamMember,
+        removeCareTeamMember,
         language,
         setLanguage,
         textScale,

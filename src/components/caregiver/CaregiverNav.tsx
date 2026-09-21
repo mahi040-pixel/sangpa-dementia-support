@@ -12,9 +12,12 @@ import {
   Home, 
   ArrowRight,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  UtensilsCrossed,
+  Users,
+  LogOut
 } from 'lucide-react';
-import { CaregiverScreen } from '../../types';
+import { CaregiverScreen, CaregiverRole } from '../../types';
 import { audio } from '../../utils/audio';
 import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
@@ -27,7 +30,10 @@ export const CaregiverNav: React.FC = () => {
     setPatientScreen, 
     device,
     language,
-    patientProfile
+    patientProfile,
+    caregiverRole,
+    caregiverUser,
+    logoutCaregiver
   } = useApp();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = device === 'mobile';
@@ -35,49 +41,80 @@ export const CaregiverNav: React.FC = () => {
   const t = getCaregiverI18n(language);
   const patientDisplayName = patientProfile.preferredName || patientProfile.name || 'Maya Devi';
 
-  const caregiverSliderItems: { 
+  const roleLabel = caregiverRole === 'doctor' 
+    ? 'Doctor' 
+    : caregiverRole === 'nurse' 
+    ? 'Nurse' 
+    : 'Family Member';
+
+  const allSliderItems: { 
     screen: CaregiverScreen; 
     label: string; 
     number: string;
     icon: React.FC<{ className?: string }>; 
     description: string;
+    visibleFor: CaregiverRole[];
   }[] = [
     { 
       screen: 'patient_profile', 
       number: t.nav.options.patient_profile?.number || '1.', 
       label: t.nav.options.patient_profile?.label || 'Patient Details', 
       icon: User, 
-      description: t.nav.options.patient_profile?.description || 'Personal details, routine schedule & quiet hours' 
+      description: t.nav.options.patient_profile?.description || 'Personal details, routine schedule & quiet hours',
+      visibleFor: ['doctor', 'nurse', 'family']
     },
     { 
       screen: 'knowledge_assistant', 
       number: t.nav.options.knowledge_assistant?.number || '2.', 
       label: t.nav.options.knowledge_assistant?.label || 'Knowledge Assistant', 
       icon: Bot, 
-      description: t.nav.options.knowledge_assistant?.description || 'AI dementia care advice & guidance' 
+      description: t.nav.options.knowledge_assistant?.description || 'AI dementia care advice & guidance',
+      visibleFor: ['doctor', 'nurse', 'family']
     },
     { 
       screen: 'memories', 
       number: t.nav.options.memories?.number || '3.', 
       label: t.nav.options.memories?.label || 'Add Memories', 
       icon: Heart, 
-      description: t.nav.options.memories?.description || 'Family photos, stories & loved ones' 
+      description: t.nav.options.memories?.description || 'Family photos, stories & loved ones',
+      visibleFor: ['family'] // ONLY visible to Family Member!
     },
     { 
       screen: 'alerts', 
       number: t.nav.options.alerts?.number || '4.', 
       label: t.nav.options.alerts?.label || 'Alerts', 
       icon: Bell, 
-      description: t.nav.options.alerts?.description || 'Missed meds, emergency alerts & notices' 
+      description: t.nav.options.alerts?.description || 'Missed meds, emergency alerts & notices',
+      visibleFor: ['doctor', 'nurse', 'family']
     },
     { 
       screen: 'progress', 
       number: t.nav.options.progress?.number || '5.', 
-      label: t.nav.options.progress?.label || 'Weekly Engagement & Improvement Graph', 
+      label: t.nav.options.progress?.label || 'Weekly Engagement & Improvements', 
       icon: TrendingUp, 
-      description: t.nav.options.progress?.description || 'Active minutes & 4-week cognitive curves' 
+      description: t.nav.options.progress?.description || 'Active minutes & 4-week cognitive curves',
+      visibleFor: ['doctor', 'nurse', 'family']
     },
+    { 
+      screen: 'diet', 
+      number: '6.', 
+      label: 'Diet & Nutrition', 
+      icon: UtensilsCrossed, 
+      description: 'Approved meal plans, portions, tracking & suggestions',
+      visibleFor: ['doctor', 'nurse', 'family'] // visible to All!
+    },
+    { 
+      screen: 'care_team', 
+      number: '7.', 
+      label: 'Care Team', 
+      icon: Users, 
+      description: 'Clinical doctors, nursing staff & family directory',
+      visibleFor: ['doctor'] // ONLY visible to Doctor!
+    }
   ];
+
+  // Role-filtered navigation items
+  const caregiverSliderItems = allSliderItems.filter(item => item.visibleFor.includes(caregiverRole));
 
   const unreadAlerts = alerts.filter(a => !a.resolved).length;
 
@@ -100,13 +137,35 @@ export const CaregiverNav: React.FC = () => {
       {!isMobile && (
         <aside className="hidden md:flex w-56 lg:w-64 flex-col bg-[#FAF8F5] border-r border-[#E7E3D8] p-3 lg:p-4 space-y-4 flex-shrink-0 select-none">
           {/* Brand Header */}
-          <div className="flex items-center gap-2.5 px-2 pb-3 border-b border-[#E7E3D8]">
-            <div className="w-8 h-8 rounded-full bg-[#E9F0E1] flex items-center justify-center text-[#344E2E] flex-shrink-0">
-              <Sprout className="w-4 h-4 text-[#4E7037]" />
+          <div className="px-2 pb-3 border-b border-[#E7E3D8] space-y-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#E9F0E1] flex items-center justify-center text-[#344E2E] flex-shrink-0">
+                <Sprout className="w-4 h-4 text-[#4E7037]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-serif font-extrabold text-sm text-[#2B4420] tracking-wider block uppercase">{t.nav.portalBrand}</span>
+                <span className="text-[11px] font-bold text-emerald-800 block truncate">
+                  Caregiver Portal • {roleLabel}
+                </span>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <span className="font-serif font-extrabold text-sm text-[#2B4420] tracking-wider block uppercase">{t.nav.portalBrand}</span>
-              <span className="text-[10px] text-stone-500 block truncate">{t.nav.portalSubtitle}</span>
+
+            {/* Active User Pill & Switch Role button */}
+            <div className="flex items-center justify-between gap-1 p-2 rounded-xl bg-white border border-[#E7E3D8] text-[11px]">
+              <div className="min-w-0 flex-1">
+                <span className="font-bold text-stone-900 block truncate">{caregiverUser.name}</span>
+                <span className="text-[10px] text-stone-500 block truncate">{caregiverUser.title}</span>
+              </div>
+              <button
+                onClick={() => {
+                  audio.playGentleChime();
+                  logoutCaregiver();
+                }}
+                className="text-[10px] font-bold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                title="Log out or switch role"
+              >
+                Switch
+              </button>
             </div>
           </div>
 
@@ -174,51 +233,56 @@ export const CaregiverNav: React.FC = () => {
       )}
 
       {/* Mobile Top Header Bar (3 small lines on extreme left corner) */}
-      <header className={`${isMobile ? 'block' : 'md:hidden'} bg-[#FAF8F5] border-b border-[#E7E3D8] px-3.5 py-2.5 sticky top-0 z-30 shadow-2xs select-none`}>
-        <div className="flex items-center justify-between">
-          {/* Extreme Left: 3 Small Lines Hamburger Button & SANGPA Logo */}
-          <div className="flex items-center gap-2">
+      <header className={`${isMobile ? 'block' : 'md:hidden'} bg-[#FAF8F5] border-b border-[#E7E3D8] px-3 py-2 sticky top-0 z-30 shadow-2xs select-none`}>
+        <div className="flex items-center justify-between gap-1.5">
+          {/* Extreme Left: 3 Small Lines Hamburger Button & SANGPA Logo + Role */}
+          <div className="flex items-center gap-2 min-w-0">
             <button
               onClick={() => {
                 audio.playGentleChime();
                 setIsDrawerOpen(true);
               }}
-              className="p-1.5 -ml-1 rounded-xl bg-white hover:bg-[#EAE6DC] text-[#2F4A24] border border-[#D5DFC9] shadow-2xs transition-colors cursor-pointer active:scale-95"
+              className="p-1.5 -ml-1 rounded-xl bg-white hover:bg-[#EAE6DC] text-[#2F4A24] border border-[#D5DFC9] shadow-2xs transition-colors cursor-pointer active:scale-95 flex-shrink-0"
               title={t.nav.menu}
               aria-label={t.nav.menu}
             >
               <Menu className="w-5 h-5 stroke-[2.4]" />
             </button>
 
-            {/* SANGPA Logo with leaf */}
+            {/* SANGPA Logo & Role */}
             <div 
               onClick={() => handleNavClick('overview')}
-              className="flex items-center gap-1 cursor-pointer"
+              className="flex items-center gap-1.5 cursor-pointer min-w-0"
             >
-              <Sprout className="w-4 h-4 text-[#4E7037]" />
-              <span className="text-sm font-black tracking-wider text-[#2B4420] uppercase font-serif">
-                {t.nav.portalBrand}
-              </span>
+              <Sprout className="w-4 h-4 text-[#4E7037] flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="text-xs font-black tracking-tight text-[#2B4420] block truncate">
+                  Caregiver Portal • {roleLabel}
+                </span>
+                <span className="text-[10px] text-stone-500 font-medium block truncate">
+                  {caregiverUser.name}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Extreme Right: Patient Status Pill */}
-          <div className="flex items-center gap-2">
+          {/* Extreme Right: Patient Status Pill & Switch Role */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 bg-[#EAF2E6] px-2 py-0.5 rounded-full border border-[#D5DFC9]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span>{patientDisplayName} {t.overview.liveConnected}</span>
+              <span>Online</span>
             </span>
 
-            {unreadAlerts > 0 && (
-              <button
-                onClick={() => handleNavClick('alerts')}
-                className="p-1.5 rounded-full bg-rose-100 text-rose-700 relative hover:bg-rose-200 transition-colors cursor-pointer"
-                title={t.nav.options.alerts?.label || "Alerts"}
-              >
-                <Bell className="w-3.5 h-3.5" />
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-600 ring-1 ring-white" />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                audio.playGentleChime();
+                logoutCaregiver();
+              }}
+              className="text-[10px] font-bold text-stone-700 hover:text-stone-900 bg-white border border-[#E7E3D8] hover:bg-stone-100 px-2 py-1 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+              title="Switch role / log out"
+            >
+              Switch
+            </button>
           </div>
         </div>
       </header>
@@ -235,8 +299,8 @@ export const CaregiverNav: React.FC = () => {
           {/* Drawer Panel sliding from the left inside the mobile screen */}
           <div className="relative w-[85%] max-w-[320px] h-full bg-[#FAF8F5] shadow-2xl flex flex-col z-50 border-r border-[#E7E3D8] overflow-y-auto animate-in slide-in-from-left duration-200">
             {/* Drawer Top Header */}
-            <div className="p-4 border-b border-[#E7E3D8] bg-[#F4F1EA]">
-              <div className="flex items-center justify-between mb-3">
+            <div className="p-4 border-b border-[#E7E3D8] bg-[#F4F1EA] space-y-2.5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Sprout className="w-5 h-5 text-[#4E7037]" />
                   <span className="text-base font-black tracking-widest text-[#2B4420] uppercase font-serif">
@@ -249,6 +313,31 @@ export const CaregiverNav: React.FC = () => {
                   title={t.nav.closeMenu}
                 >
                   <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Role & Logged in user pill */}
+              <div className="p-2.5 rounded-2xl bg-white border border-[#E7E3D8] shadow-2xs flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 block">
+                    Caregiver Portal • {roleLabel}
+                  </span>
+                  <span className="text-xs font-bold text-stone-900 block truncate">
+                    {caregiverUser.name}
+                  </span>
+                  <span className="text-[10px] text-stone-500 block truncate">
+                    {caregiverUser.title}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    audio.playGentleChime();
+                    logoutCaregiver();
+                  }}
+                  className="text-[10px] font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                  title="Switch role"
+                >
+                  Switch
                 </button>
               </div>
 

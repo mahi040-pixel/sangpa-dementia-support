@@ -16,7 +16,9 @@ import {
   ExternalLink,
   AlertTriangle,
   CheckCircle2,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck,
+  HeartHandshake
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { LanguageCode } from '../../types';
@@ -35,8 +37,13 @@ export const CaregiverProfileSettings: React.FC = () => {
     language, 
     setLanguage,
     speakMascot,
-    setCaregiverScreen
+    setCaregiverScreen,
+    caregiverRole
   } = useApp();
+
+  const isDoctor = caregiverRole === 'doctor';
+  const isNurse = caregiverRole === 'nurse';
+  const isFamily = caregiverRole === 'family';
 
   const t = getCaregiverI18n(language);
 
@@ -190,14 +197,39 @@ export const CaregiverProfileSettings: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="w-full sm:w-auto py-3 px-6 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
-        >
-          <Save className="w-4 h-4" />
-          <span>{savedSuccess ? t.profileSettings.savedToast : t.profileSettings.saveBtn}</span>
-        </button>
+        {!isFamily ? (
+          <button
+            onClick={handleSave}
+            className="w-full sm:w-auto py-3 px-6 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
+          >
+            <Save className="w-4 h-4" />
+            <span>{savedSuccess ? t.profileSettings.savedToast : t.profileSettings.saveBtn}</span>
+          </button>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 py-2.5 px-4 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs flex-shrink-0">
+            <ShieldCheck className="w-4 h-4 text-amber-700" />
+            <span>Family View Mode (Read-Only)</span>
+          </div>
+        )}
       </div>
+
+      {/* Role Context Notice */}
+      {isFamily && (
+        <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5 shadow-2xs">
+          <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block">Family Member View:</span>
+            <span>Official patient information, diagnosis, and quiet hours are maintained by Dr. Anita Verma and Nurse Priya Sharma. You can audition voice personas and sound tones below.</span>
+          </div>
+        </div>
+      )}
+
+      {isNurse && (
+        <div className="p-3 bg-blue-50 rounded-2xl border border-blue-200 text-xs text-blue-900 flex items-center gap-2 shadow-2xs">
+          <HeartHandshake className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <span><strong>Nurse Access:</strong> You can update preferred call names, quiet hours, and reminder tones. Official medical condition is locked to Doctor authority.</span>
+        </div>
+      )}
 
       {savedSuccess && (
         <div className="p-3.5 bg-emerald-100 border border-emerald-300 rounded-2xl text-emerald-900 text-xs sm:text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
@@ -208,10 +240,15 @@ export const CaregiverProfileSettings: React.FC = () => {
 
       {/* 1. Patient Info Card */}
       <div className="bg-white border-2 border-sangpa-200 rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
-        <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
-          <User className="w-5 h-5 text-sangpa-600" />
-          <span>{t.profileSettings.patientInfoTitle}</span>
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
+            <User className="w-5 h-5 text-sangpa-600" />
+            <span>{t.profileSettings.patientInfoTitle}</span>
+          </h3>
+          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-100 text-stone-700">
+            {isDoctor ? 'Doctor Authority (Full Edit)' : isNurse ? 'Nurse Authority (Limited)' : 'Family View'}
+          </span>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
@@ -219,10 +256,16 @@ export const CaregiverProfileSettings: React.FC = () => {
             <input 
               type="text" 
               value={name} 
-              onChange={e => handleNameChange(e.target.value)}
-              className="w-full p-3 rounded-xl border border-sangpa-300 text-sm text-sangpa-900 focus:border-sangpa-500 outline-none bg-sangpa-50/20"
+              disabled={!isDoctor}
+              onChange={e => isDoctor && handleNameChange(e.target.value)}
+              className={`w-full p-3 rounded-xl border text-sm outline-none ${
+                !isDoctor 
+                  ? 'bg-stone-100 border-stone-200 text-stone-600 cursor-not-allowed' 
+                  : 'border-sangpa-300 text-sangpa-900 focus:border-sangpa-500 bg-sangpa-50/20'
+              }`}
               placeholder="e.g. Kamala Sharma"
             />
+            {!isDoctor && <span className="text-[10px] text-stone-500">Managed by attending physician</span>}
           </div>
 
           <div className="space-y-1">
@@ -230,8 +273,13 @@ export const CaregiverProfileSettings: React.FC = () => {
             <input 
               type="text" 
               value={preferredName} 
-              onChange={e => handlePreferredNameChange(e.target.value)}
-              className="w-full p-3 rounded-xl border border-sangpa-300 text-sm text-sangpa-900 focus:border-sangpa-500 outline-none ring-1 ring-sangpa-300 bg-sangpa-50/20"
+              disabled={isFamily}
+              onChange={e => !isFamily && handlePreferredNameChange(e.target.value)}
+              className={`w-full p-3 rounded-xl border text-sm outline-none ring-1 ${
+                isFamily 
+                  ? 'bg-stone-100 border-stone-200 text-stone-600 cursor-not-allowed ring-stone-200' 
+                  : 'border-sangpa-300 text-sangpa-900 focus:border-sangpa-500 ring-sangpa-300 bg-sangpa-50/20'
+              }`}
               placeholder="e.g. Kamala Dadi"
             />
             <p className="text-[11px] text-sangpa-600 pt-0.5">
@@ -244,19 +292,41 @@ export const CaregiverProfileSettings: React.FC = () => {
             <input 
               type="number" 
               value={age} 
-              onChange={e => setAge(Number(e.target.value))}
-              className="w-full p-3 rounded-xl border border-sangpa-300 text-sm text-sangpa-900 focus:border-sangpa-500 outline-none bg-sangpa-50/20"
+              disabled={!isDoctor}
+              onChange={e => isDoctor && setAge(Number(e.target.value))}
+              className={`w-full p-3 rounded-xl border text-sm outline-none ${
+                !isDoctor 
+                  ? 'bg-stone-100 border-stone-200 text-stone-600 cursor-not-allowed' 
+                  : 'border-sangpa-300 text-sangpa-900 focus:border-sangpa-500 bg-sangpa-50/20'
+              }`}
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.conditionLabel}</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.conditionLabel}</label>
+              {!isDoctor && (
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  Doctor Authority Only
+                </span>
+              )}
+            </div>
             <input 
               type="text" 
               value={condition} 
-              onChange={e => setCondition(e.target.value)}
-              className="w-full p-3 rounded-xl border border-sangpa-300 text-sm text-sangpa-900 focus:border-sangpa-500 outline-none bg-sangpa-50/20"
+              disabled={!isDoctor}
+              onChange={e => isDoctor && setCondition(e.target.value)}
+              className={`w-full p-3 rounded-xl border text-sm outline-none ${
+                !isDoctor 
+                  ? 'bg-stone-100 border-stone-200 text-stone-600 cursor-not-allowed' 
+                  : 'border-sangpa-300 text-sangpa-900 focus:border-sangpa-500 bg-sangpa-50/20'
+              }`}
             />
+            {!isDoctor && (
+              <span className="text-[10px] text-stone-500 block pt-0.5">
+                Clinical diagnosis is maintained exclusively by Dr. Anita Verma.
+              </span>
+            )}
           </div>
         </div>
       </div>

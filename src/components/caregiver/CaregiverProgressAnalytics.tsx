@@ -22,7 +22,7 @@ import { DiceMathSessionRecord } from '../../types';
 import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 export const CaregiverProgressAnalytics: React.FC = () => {
-  const { setCaregiverScreen, patientProfile, language } = useApp();
+  const { setCaregiverScreen, patientProfile, language, caregiverRole } = useApp();
   const t = getCaregiverI18n(language);
   const patientDisplayName = patientProfile?.preferredName || patientProfile?.name || 'Maya Devi';
   const [activeGraphTab, setActiveGraphTab] = useState<'both' | 'engagement' | 'improvement'>('both');
@@ -134,6 +134,42 @@ export const CaregiverProgressAnalytics: React.FC = () => {
               {t.progress.subtitle(patientDisplayName)}
             </p>
           </div>
+        </div>
+
+        {/* Role-Tailored Clinical / Care / Family Perspective Card */}
+        <div className={`p-3.5 sm:p-4 rounded-3xl border shadow-2xs space-y-1.5 ${
+          caregiverRole === 'doctor'
+            ? 'bg-purple-50/70 border-purple-200 text-purple-950'
+            : caregiverRole === 'nurse'
+            ? 'bg-blue-50/70 border-blue-200 text-blue-950'
+            : 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className={`w-4 h-4 ${
+                caregiverRole === 'doctor' ? 'text-purple-700' : caregiverRole === 'nurse' ? 'text-blue-700' : 'text-emerald-700'
+              }`} />
+              <span className="text-xs font-black uppercase tracking-wide">
+                {caregiverRole === 'doctor'
+                  ? '👨‍⚕️ Clinical Progression & Cognitive Trajectory'
+                  : caregiverRole === 'nurse'
+                  ? '👩‍⚕️ Daily Care Adherence & Vitals Compliance'
+                  : '🏡 Heartwarming Family Weekly Summary'}
+              </span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 border border-current/20">
+              {caregiverRole === 'doctor' ? 'Geriatrician View' : caregiverRole === 'nurse' ? 'Attendant View' : 'Family View'}
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm font-medium leading-relaxed">
+            {caregiverRole === 'doctor' &&
+              `${patientDisplayName}'s 4-week cognitive trajectory demonstrates stable progression (+14% motor rhythm tapping, 91% memory flashcard recall). Routine medication compliance is at 92.3%. Clinical recommendation: Maintain current MIND diet protocol and bedtime calming schedule.`}
+            {caregiverRole === 'nurse' &&
+              `Daily routine completion reached 92.3% this week with an average of 35.6 minutes of purposeful activity per day. Hydration goals (4/6 glasses) and evening transitions are progressing smoothly with zero critical incidents.`}
+            {caregiverRole === 'family' &&
+              `Grandma had 5 wonderful calm & happy days this week! She played 3 memory games with 94% accuracy, remembered family stories during photo flashcards, and completed all her morning garden walks.`}
+          </p>
         </div>
 
         {/* View Switcher Tabs */}

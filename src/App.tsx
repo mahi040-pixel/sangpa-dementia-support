@@ -37,6 +37,8 @@ import { CaregiverGamesConfig } from './components/caregiver/CaregiverGamesConfi
 import { CaregiverProgressAnalytics } from './components/caregiver/CaregiverProgressAnalytics';
 import { CaregiverContactsManager } from './components/caregiver/CaregiverContactsManager';
 import { CaregiverAlertsPage } from './components/caregiver/CaregiverAlertsPage';
+import { CaregiverDietNutrition } from './components/caregiver/CaregiverDietNutrition';
+import { CaregiverCareTeam } from './components/caregiver/CaregiverCareTeam';
 import { SecurityPrivacyPage } from './components/caregiver/SecurityPrivacyPage';
 
 // Healthcare Component
@@ -109,6 +111,8 @@ const AppContent: React.FC = () => {
       case 'progress': return <CaregiverProgressAnalytics />;
       case 'contacts': return <CaregiverContactsManager />;
       case 'alerts': return <CaregiverAlertsPage />;
+      case 'diet': return <CaregiverDietNutrition />;
+      case 'care_team': return <CaregiverCareTeam />;
       case 'healthcare_shared': return <HealthcareWorkerView />;
       case 'security': return <SecurityPrivacyPage />;
       default: return <CaregiverOverview />;

@@ -25,6 +25,8 @@ export type PatientScreen =
   | 'emergency'
   | 'mascot_chat';
 
+export type CaregiverRole = 'doctor' | 'nurse' | 'family';
+
 export type CaregiverScreen = 
   | 'overview'
   | 'patient_profile'
@@ -36,7 +38,9 @@ export type CaregiverScreen =
   | 'contacts'
   | 'alerts'
   | 'healthcare_shared'
-  | 'security';
+  | 'security'
+  | 'diet'
+  | 'care_team';
 
 export interface ReminderItem {
   id: string;
@@ -178,3 +182,50 @@ export interface PatientProfile {
   lastActive: string;
   isOnline: boolean;
 }
+
+export interface DietMealItem {
+  id: 'breakfast' | 'lunch' | 'snack' | 'dinner';
+  name: string;
+  time: string;
+  items: string[];
+  portion: string;
+  notes: string;
+  status: 'upcoming' | 'completed' | 'partially_eaten' | 'skipped';
+  nurseObservation?: string;
+  loggedAt?: string;
+}
+
+export interface DietPlan {
+  id: string;
+  approvedBy: string;
+  lastUpdated: string;
+  hydrationTarget: number;
+  hydrationCurrent: number;
+  guidelines?: string;
+  restrictions?: string[];
+  meals: DietMealItem[];
+}
+
+export interface DietSuggestion {
+  id: string;
+  submittedByRole: CaregiverRole;
+  submittedByName: string;
+  submittedAt: string;
+  mealId?: 'breakfast' | 'lunch' | 'snack' | 'dinner' | 'general';
+  message: string;
+  status: 'pending' | 'approved' | 'modified' | 'rejected';
+  doctorResponse?: string;
+  reviewedAt?: string;
+}
+
+export interface CareTeamMember {
+  id: string;
+  name: string;
+  role: 'Doctor' | 'Nurse' | 'Family Member';
+  specialty: string;
+  status: string;
+  phone: string;
+  email: string;
+  avatar?: string;
+}
+

@@ -41,7 +41,9 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
     reminders, 
     activities, 
     alerts, 
-    language 
+    language,
+    caregiverRole,
+    caregiverUser
   } = useApp();
 
   const t = getCaregiverI18n(language);
@@ -49,15 +51,23 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
 
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome-0',
-      sender: 'assistant',
-      text: `Namaste Riya! I am your SANGPA Clinical Knowledge Assistant. I have live, real-time access to ${patientDisplayName}'s care logs, medication confirmations, cognitive metrics, and doctor schedules.\n\nAsk me anything — how she is feeling, daily routine checks, game progress, or clinical dementia caregiving advice!`,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      source: 'openai'
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    const roleGreeting = caregiverRole === 'doctor'
+      ? `Namaste Dr. Anita Verma! I am your SANGPA Clinical Assistant. I have real-time access to ${patientDisplayName}'s diagnostic history, medication adherence, 4-week cognitive trajectory metrics, and pending dietary suggestions. How can I assist your clinical oversight today?`
+      : caregiverRole === 'nurse'
+      ? `Namaste Nurse Priya! I am your SANGPA Daily Care Assistant. I have real-time access to ${patientDisplayName}'s routine completion, hydration tracking, meal intake logs, and vitals alerts. How can I assist your care shift today?`
+      : `Namaste ${caregiverUser.name}! I am your SANGPA Family Assistant. I can help you understand how Grandma is feeling, her memory game moments, daily meals, and gentle tips for loving communication at home.`;
+
+    return [
+      {
+        id: 'welcome-0',
+        sender: 'assistant',
+        text: roleGreeting,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: 'openai'
+      }
+    ];
+  });
 
   // Voice & Speech Recognition State
   const [isListening, setIsListening] = useState(false);
@@ -341,13 +351,21 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
       .replace(/`([^`]+)`/g, '<code class="bg-[#F0ECE1] px-1.5 py-0.5 rounded text-[11px] font-mono text-[#24421C]">$1</code>');
   };
 
-  const suggestedQuestions = [
-    t.knowledgeAssistant.sampleQuestions.status,
-    t.knowledgeAssistant.sampleQuestions.appointment,
-    t.knowledgeAssistant.sampleQuestions.games,
-    t.knowledgeAssistant.sampleQuestions.missed,
-    t.knowledgeAssistant.sampleQuestions.sundowning,
-    t.knowledgeAssistant.sampleQuestions.graphs
+  const suggestedQuestions = caregiverRole === 'doctor' ? [
+    `Evaluate ${patientDisplayName}'s 4-week cognitive trajectory and motor rhythm`,
+    `Review clinical medication interactions and vitals adherence`,
+    `What are evidence-based non-pharmacological protocols for sundowning?`,
+    `Summarize pending dietary suggestions and MIND diet compliance`
+  ] : caregiverRole === 'nurse' ? [
+    `Check today's meal completion and hydration logs for ${patientDisplayName}`,
+    `Protocol for evening restlessness and sundowning de-escalation`,
+    `Did Kamala Dadi take her morning BP medicine (Amlodipine)?`,
+    `Gentle chair exercises and hydration schedule for afternoon shift`
+  ] : [
+    `How is Grandma feeling today and what memory games did she play?`,
+    `Compassionate communication tips when Grandma repeats questions`,
+    `What did Grandma eat for lunch and how was her appetite?`,
+    `Gentle evening activities we can enjoy together at home`
   ];
 
   return (

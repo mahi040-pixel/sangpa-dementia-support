@@ -25,7 +25,8 @@ export const CaregiverAlertsPage: React.FC = () => {
     speakMascot, 
     setCaregiverScreen, 
     patientProfile,
-    language
+    language,
+    caregiverRole
   } = useApp();
 
   const patientDisplayName = patientProfile?.preferredName || patientProfile?.name || 'Maya Devi';
@@ -81,9 +82,20 @@ export const CaregiverAlertsPage: React.FC = () => {
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{t.alerts.backBtn}</span>
           </button>
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-            {t.alerts.optionBadge}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
+              {t.alerts.optionBadge}
+            </span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+              caregiverRole === 'doctor'
+                ? 'bg-purple-100 text-purple-900 border-purple-200'
+                : caregiverRole === 'nurse'
+                ? 'bg-blue-100 text-blue-900 border-blue-200'
+                : 'bg-emerald-100 text-emerald-900 border-emerald-200'
+            }`}>
+              {caregiverRole === 'doctor' ? '👨‍⚕️ Clinical Clearance Authority' : caregiverRole === 'nurse' ? '👩‍⚕️ Daily Care Response' : '🏡 Family View • Supervised by Care Team'}
+            </span>
+          </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-sangpa-900 tracking-tight flex items-center gap-2">
             <span>{t.alerts.title}</span>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emergency-100 text-emergency-800">
@@ -161,13 +173,33 @@ export const CaregiverAlertsPage: React.FC = () => {
               <div className="pt-2 border-t border-sangpa-100 flex flex-wrap items-center justify-between gap-2">
                 {!isResolved ? (
                   <>
-                    <button
-                      onClick={() => resolveAlert(alt.id)}
-                      className="py-2 px-4 rounded-xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>{t.alerts.resolveBtn}</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => resolveAlert(alt.id)}
+                        className={`py-2 px-4 rounded-xl text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer ${
+                          caregiverRole === 'doctor'
+                            ? 'bg-purple-700 hover:bg-purple-800'
+                            : caregiverRole === 'nurse'
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'bg-emerald-600 hover:bg-emerald-700'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>
+                          {caregiverRole === 'doctor'
+                            ? 'Resolve & Clear Clinical Alert'
+                            : caregiverRole === 'nurse'
+                            ? 'Acknowledge & Record Care Action'
+                            : 'Acknowledge as Family'}
+                        </span>
+                      </button>
+
+                      {caregiverRole === 'family' && (
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                          🛡️ Under Nurse & Doctor Care
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-2">
                       <button
