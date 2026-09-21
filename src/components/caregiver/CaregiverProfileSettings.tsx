@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { LanguageCode } from '../../types';
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 import { 
   elevenLabsService, 
   ELEVENLABS_VOICE_ID, 
@@ -36,6 +37,8 @@ export const CaregiverProfileSettings: React.FC = () => {
     speakMascot,
     setCaregiverScreen
   } = useApp();
+
+  const t = getCaregiverI18n(language);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [name, setName] = useState(patientProfile.name);
@@ -174,16 +177,16 @@ export const CaregiverProfileSettings: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#24421C] bg-[#DCE7D3] hover:bg-[#CAD8C6] px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs mb-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>← Back to Patient Summary</span>
+            <span>{t.profileSettings.backBtn}</span>
           </button>
           <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-            Option 1
+            {t.profileSettings.optionBadge}
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-sangpa-900 tracking-tight">
-            1. Patient Details
+            {t.profileSettings.title}
           </h2>
           <p className="text-xs sm:text-sm text-sangpa-600">
-            Personal details, daily schedule, sound tones, quiet resting hours & language for Maya Devi
+            {t.profileSettings.subtitle(preferredName || name || 'Maya Devi')}
           </p>
         </div>
 
@@ -192,14 +195,14 @@ export const CaregiverProfileSettings: React.FC = () => {
           className="w-full sm:w-auto py-3 px-6 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer flex-shrink-0"
         >
           <Save className="w-4 h-4" />
-          <span>{savedSuccess ? "Preferences Saved!" : "Save Changes"}</span>
+          <span>{savedSuccess ? t.profileSettings.savedToast : t.profileSettings.saveBtn}</span>
         </button>
       </div>
 
       {savedSuccess && (
         <div className="p-3.5 bg-emerald-100 border border-emerald-300 rounded-2xl text-emerald-900 text-xs sm:text-sm font-bold flex items-center gap-2.5 animate-fadeIn">
           <Check className="w-5 h-5 text-emerald-700 flex-shrink-0" />
-          <span>Patient preferences successfully updated across all SANGPA devices.</span>
+          <span>{t.profileSettings.savedToast}</span>
         </div>
       )}
 
@@ -207,12 +210,12 @@ export const CaregiverProfileSettings: React.FC = () => {
       <div className="bg-white border-2 border-sangpa-200 rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
         <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
           <User className="w-5 h-5 text-sangpa-600" />
-          <span>Patient Information</span>
+          <span>{t.profileSettings.patientInfoTitle}</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Full Legal Name</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.legalNameLabel}</label>
             <input 
               type="text" 
               value={name} 
@@ -223,7 +226,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Preferred Calling Name (Used in Voice & Namaste Greeting)</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.preferredNameLabel}</label>
             <input 
               type="text" 
               value={preferredName} 
@@ -237,7 +240,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Age</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.ageLabel}</label>
             <input 
               type="number" 
               value={age} 
@@ -247,7 +250,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Condition Notes</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.conditionLabel}</label>
             <input 
               type="text" 
               value={condition} 
@@ -263,10 +266,10 @@ export const CaregiverProfileSettings: React.FC = () => {
         <div>
           <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
             <Languages className="w-5 h-5 text-sangpa-600" />
-            <span>Preferred Spoken & Display Language</span>
+            <span>{t.profileSettings.languageTitle}</span>
           </h3>
           <p className="text-xs text-sangpa-600 mt-1">
-            Controls the mascot's spoken dialect, reminders speech, and on-screen cards.
+            {t.profileSettings.languageSubtitle}
           </p>
         </div>
 
@@ -310,17 +313,17 @@ export const CaregiverProfileSettings: React.FC = () => {
         <div>
           <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-sangpa-600" />
-            <span>Gentle Reminder Sound & Preview</span>
+            <span>{t.profileSettings.soundTonesTitle}</span>
           </h3>
           <p className="text-xs text-sangpa-600 mt-1">
-            Select a calming sound for hydration and medication prompts. Always test audio volume with the preview button.
+            {t.profileSettings.soundTonesSubtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { id: 'temple_bell', name: 'Soft Brass Temple Bell', desc: 'Deep warm harmonic resonance, spiritually calming' },
-            { id: 'chime', name: 'Gentle Wind Chime', desc: 'Soft acoustic chimes that awaken attention gently' },
+            { id: 'temple_bell', name: t.profileSettings.templeBellLabel, desc: t.profileSettings.templeBellDesc },
+            { id: 'chime', name: t.profileSettings.gentleChimesLabel, desc: t.profileSettings.gentleChimesDesc },
             { id: 'forest_birds', name: 'Morning Forest Birds', desc: 'Natural forest chirps evoking peace and morning air' },
             { id: 'family_voice', name: 'Mascot Voice Prompt', desc: 'Sangpa speaks the instruction directly in familiar native dialect' },
           ].map((s) => (
@@ -345,7 +348,7 @@ export const CaregiverProfileSettings: React.FC = () => {
                   handleAuditionSound(s.id as any);
                 }}
                 className="p-3 rounded-full bg-sangpa-100 hover:bg-sangpa-200 text-sangpa-800 flex-shrink-0 cursor-pointer active:scale-95 transition-all shadow-2xs"
-                title="Play sound audition"
+                title={t.profileSettings.testChimeBtn}
               >
                 <Play className="w-4 h-4 fill-current text-sangpa-700" />
               </button>
@@ -364,14 +367,14 @@ export const CaregiverProfileSettings: React.FC = () => {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base sm:text-lg font-extrabold text-sangpa-900">
-                  Sangpa Mascot Voice Engine
+                  {t.profileSettings.voicePersonaTitle}
                 </h3>
                 <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-sangpa-100 text-sangpa-900 border border-sangpa-200">
                   ElevenLabs Multilingual v2
                 </span>
               </div>
               <p className="text-xs text-sangpa-600 truncate">
-                Voice: <strong>{ELEVENLABS_VOICE_NAME}</strong> (<code className="bg-sangpa-100 px-1 py-0.5 rounded text-[10px] font-mono text-sangpa-800">{ELEVENLABS_VOICE_ID}</code>)
+                {t.profileSettings.voicePersonaSubtitle}
               </p>
             </div>
           </div>
@@ -388,7 +391,7 @@ export const CaregiverProfileSettings: React.FC = () => {
               }`}
             >
               {isPlayingHindi ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-              <span>{isPlayingHindi ? 'रोकें' : 'सांगपा हिन्दी आवाज़ सुनें (Hindi)'}</span>
+              <span>{isPlayingHindi ? t.profileSettings.stopAudio : t.profileSettings.playHindiSample}</span>
             </button>
 
             <button
@@ -401,7 +404,7 @@ export const CaregiverProfileSettings: React.FC = () => {
               }`}
             >
               {isPlayingPreview ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-              <span>{isPlayingPreview ? 'Stop' : 'English Sample (Suhana)'}</span>
+              <span>{isPlayingPreview ? t.profileSettings.stopAudio : t.profileSettings.playEnglishSample}</span>
             </button>
           </div>
         </div>
@@ -410,11 +413,10 @@ export const CaregiverProfileSettings: React.FC = () => {
         <div className="p-4 bg-sangpa-50/80 rounded-2xl border border-sangpa-200 text-xs text-sangpa-800 space-y-1.5">
           <p className="font-bold text-sangpa-900 flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-sangpa-600" />
-            <span>Voice Persona: Suhana J (Young & Joyful Child Companion)</span>
+            <span>{t.profileSettings.voicePersonaName}</span>
           </p>
           <p className="text-sangpa-700 leading-relaxed text-[11px] sm:text-xs">
-            Suhana’s voice is bright, youthful, and full of innocence—warm and comforting for {preferredName || name} like a loving grandchild. 
-            All Hindi interactions (greeting, reminders, routines, wellness, and chat) now speak in this joyful child companion voice!
+            {t.profileSettings.voicePersonaDesc(preferredName || name || 'Maya Devi')}
           </p>
         </div>
 
@@ -560,19 +562,19 @@ export const CaregiverProfileSettings: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
             <Moon className="w-5 h-5 text-sangpa-600" />
-            <span>Quiet Resting Hours</span>
+            <span>{t.profileSettings.quietHoursTitle}</span>
           </h3>
           <span className="text-xs bg-sangpa-100 text-sangpa-800 font-bold px-2.5 py-1 rounded-full w-fit">
             Active Every Night
           </span>
         </div>
         <p className="text-xs text-sangpa-600">
-          During quiet hours, routine chimes are silenced to preserve deep restful sleep.
+          {t.profileSettings.quietHoursSubtitle}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Sleep Start Time (Mute Chimes)</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.sleepStartLabel}</label>
             <input 
               type="time" 
               value={quietHoursStart} 
@@ -582,7 +584,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-sangpa-700 block">Morning Wake Time (Resume Reminders)</label>
+            <label className="text-xs font-bold text-sangpa-700 block">{t.profileSettings.morningWakeLabel}</label>
             <input 
               type="time" 
               value={quietHoursEnd} 
@@ -601,7 +603,7 @@ export const CaregiverProfileSettings: React.FC = () => {
             className="w-4 h-4 mt-0.5 rounded text-sangpa-600 focus:ring-sangpa-400 cursor-pointer"
           />
           <label htmlFor="bypass" className="text-xs font-semibold text-sangpa-800 cursor-pointer leading-relaxed">
-            Emergency alerts automatically bypass Quiet Hours to guarantee safety.
+            {t.profileSettings.emergencyBypassLabel}
           </label>
         </div>
       </div>
@@ -611,19 +613,19 @@ export const CaregiverProfileSettings: React.FC = () => {
         <div>
           <h3 className="text-base sm:text-lg font-bold text-sangpa-900 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-sangpa-600" />
-            <span>Communication Preference</span>
+            <span>{t.profileSettings.commPrefTitle}</span>
           </h3>
           <p className="text-xs text-sangpa-600 mt-1">
-            How {preferredName || name} absorbs information best:
+            {t.profileSettings.commPrefSubtitle(preferredName || name || 'Maya Devi')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
           {[
-            { id: 'voice', label: 'Spoken Voice Only', desc: 'Auditory voice guidance' },
-            { id: 'text', label: 'Large Text', desc: 'Clear bold typography' },
-            { id: 'pictures', label: 'Visual Pictures', desc: 'Iconography & memory photos' },
-            { id: 'combined', label: 'Voice + Text + Pictures', desc: 'Recommended multi-sensory' },
+            { id: 'voice', label: t.profileSettings.commPrefs.voice.label, desc: t.profileSettings.commPrefs.voice.desc },
+            { id: 'text', label: t.profileSettings.commPrefs.text.label, desc: t.profileSettings.commPrefs.text.desc },
+            { id: 'pictures', label: t.profileSettings.commPrefs.pictures.label, desc: t.profileSettings.commPrefs.pictures.desc },
+            { id: 'combined', label: t.profileSettings.commPrefs.combined.label, desc: t.profileSettings.commPrefs.combined.desc },
           ].map((c) => (
             <button
               key={c.id}
@@ -643,7 +645,7 @@ export const CaregiverProfileSettings: React.FC = () => {
               </div>
               {commPref === c.id && (
                 <span className="text-[10px] font-bold uppercase tracking-wider mt-2 inline-block self-start sm:self-center bg-white/20 px-2 py-0.5 rounded-full">
-                  Selected
+                  {t.profileSettings.selectedBadge}
                 </span>
               )}
             </button>
@@ -661,7 +663,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           }}
           className="text-xs font-bold text-sangpa-700 hover:text-sangpa-900 px-3.5 py-2.5 rounded-xl hover:bg-sangpa-100 transition-all cursor-pointer text-center sm:text-left"
         >
-          ← Back to Patient Summary
+          {t.profileSettings.backBtn}
         </button>
 
         <button
@@ -670,7 +672,7 @@ export const CaregiverProfileSettings: React.FC = () => {
           className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 active:scale-95 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Save className="w-4 h-4" />
-          <span>{savedSuccess ? "Preferences Saved!" : "Save All Changes"}</span>
+          <span>{savedSuccess ? t.profileSettings.savedToast : t.profileSettings.saveBtn}</span>
         </button>
       </div>
     </div>

@@ -14,10 +14,22 @@ import {
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { CaregiverAlert } from '../../types';
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 export const CaregiverAlertsPage: React.FC = () => {
-  const { alerts, resolveAlert, setRole, setPatientScreen, speakMascot, setCaregiverScreen, patientProfile } = useApp();
+  const { 
+    alerts, 
+    resolveAlert, 
+    setRole, 
+    setPatientScreen, 
+    speakMascot, 
+    setCaregiverScreen, 
+    patientProfile,
+    language
+  } = useApp();
+
   const patientDisplayName = patientProfile?.preferredName || patientProfile?.name || 'Maya Devi';
+  const t = getCaregiverI18n(language);
 
   const getSeverityBadge = (sev: CaregiverAlert['severity']) => {
     switch (sev) {
@@ -25,21 +37,21 @@ export const CaregiverAlertsPage: React.FC = () => {
         return (
           <span className="px-2.5 py-1 rounded-full bg-emergency-100 text-emergency-900 border border-emergency-300 text-xs font-black flex items-center gap-1">
             <AlertTriangle className="w-3.5 h-3.5 text-emergency-600" />
-            <span>URGENT</span>
+            <span>{t.alerts.urgentBadge}</span>
           </span>
         );
       case 'needs_attention':
         return (
           <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1">
             <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-            <span>Needs Attention</span>
+            <span>{t.alerts.needsAttentionBadge}</span>
           </span>
         );
       default:
         return (
           <span className="px-2.5 py-1 rounded-full bg-sangpa-100 text-sangpa-900 border border-sangpa-300 text-xs font-semibold flex items-center gap-1">
             <Info className="w-3.5 h-3.5 text-sangpa-600" />
-            <span>Informational</span>
+            <span>{t.alerts.informationalBadge}</span>
           </span>
         );
     }
@@ -51,6 +63,8 @@ export const CaregiverAlertsPage: React.FC = () => {
     setRole('patient');
     setPatientScreen('emergency');
   };
+
+  const unreadCount = alerts.filter(a => !a.resolved).length;
 
   return (
     <div className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full space-y-4 sm:space-y-6 pb-24 md:pb-8 min-w-0">
@@ -65,28 +79,28 @@ export const CaregiverAlertsPage: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#24421C] bg-[#DCE7D3] hover:bg-[#CAD8C6] px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>← Back to Patient Summary</span>
+            <span>{t.alerts.backBtn}</span>
           </button>
           <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-            Option 4
+            {t.alerts.optionBadge}
           </span>
           <h2 className="text-xl sm:text-2xl font-extrabold text-sangpa-900 tracking-tight flex items-center gap-2">
-            <span>4. Alerts</span>
+            <span>{t.alerts.title}</span>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emergency-100 text-emergency-800">
-              {alerts.filter(a => !a.resolved).length} Active
+              {t.alerts.unreadCount(unreadCount)}
             </span>
           </h2>
           <p className="text-xs sm:text-sm text-sangpa-600">
-            Dedicated triage for missed hydration, medicines, schedule updates & safety alerts
+            {t.alerts.subtitle}
           </p>
         </div>
 
         <button
           onClick={handleContactPatient}
-          className="py-2 px-4 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5 self-start sm:self-auto"
+          className="py-2 px-4 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
           <Phone className="w-4 h-4" />
-          <span>Call {patientDisplayName}</span>
+          <span>{t.alerts.contactPatientBtn}</span>
         </button>
       </div>
 
@@ -131,7 +145,14 @@ export const CaregiverAlertsPage: React.FC = () => {
               <div className="p-3 bg-white/90 rounded-2xl border border-sangpa-200 text-xs text-sangpa-800 flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-sangpa-900">Recommended Caregiver Action: </span>
+                  <span className="font-bold text-sangpa-900">
+                    {language === 'hi' ? 'अनुशंसित देखभालकर्ता कार्रवाई: ' : 
+                     language === 'as' ? 'পৰামৰ্শ দিয়া সেৱকৰ কাৰ্য: ' : 
+                     language === 'bn' ? 'সুপারিশকৃত পরিচর্যাকারীর পদক্ষেপ: ' : 
+                     language === 'mni' ? 'রিকমেন্ড তৌবা কেয়ারগিভার এক্সন: ' : 
+                     language === 'nag' ? 'ৰিকমেন্ড কৰা কেয়ারগিভার একশন: ' : 
+                     language === 'es' ? 'Acción Recomendada del Cuidador: ' : 'Recommended Caregiver Action: '}
+                  </span>
                   <span>{alt.recommendedAction}</span>
                 </div>
               </div>
@@ -142,19 +163,19 @@ export const CaregiverAlertsPage: React.FC = () => {
                   <>
                     <button
                       onClick={() => resolveAlert(alt.id)}
-                      className="py-2 px-4 rounded-xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5"
+                      className="py-2 px-4 rounded-xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Mark as Resolved</span>
+                      <span>{t.alerts.resolveBtn}</span>
                     </button>
 
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleContactPatient}
-                        className="py-2 px-3 rounded-xl bg-white hover:bg-sangpa-100 border border-sangpa-300 text-sangpa-800 text-xs font-semibold flex items-center gap-1"
+                        className="py-2 px-3 rounded-xl bg-white hover:bg-sangpa-100 border border-sangpa-300 text-sangpa-800 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <Phone className="w-3.5 h-3.5 text-sangpa-600" />
-                        <span>Contact Patient</span>
+                        <span>{t.alerts.contactPatientBtn}</span>
                       </button>
 
                       <button
@@ -162,17 +183,17 @@ export const CaregiverAlertsPage: React.FC = () => {
                           audio.playTempleBell();
                           alert("Alert snoozed for 30 minutes.");
                         }}
-                        className="py-2 px-3 rounded-xl bg-sangpa-100 hover:bg-sangpa-200 text-sangpa-800 text-xs font-semibold flex items-center gap-1"
+                        className="py-2 px-3 rounded-xl bg-sangpa-100 hover:bg-sangpa-200 text-sangpa-800 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                       >
                         <Clock className="w-3.5 h-3.5 text-sangpa-600" />
-                        <span>Snooze 30m</span>
+                        <span>{language === 'hi' ? '30 मिनट स्नूज़' : language === 'as' ? '৩০ মিনিট স্নুজ' : language === 'bn' ? '৩০ মিনিট স্নুজ' : language === 'mni' ? 'মিনিট ৩০ স্নুজ' : language === 'nag' ? '৩০ মিনিট স্নুজ' : language === 'es' ? 'Posponer 30m' : 'Snooze 30m'}</span>
                       </button>
                     </div>
                   </>
                 ) : (
                   <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 py-1">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Resolved by Riya Sharma</span>
+                    <span>{t.alerts.resolvedBadge}</span>
                   </span>
                 )}
               </div>

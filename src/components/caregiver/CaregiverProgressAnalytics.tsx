@@ -19,9 +19,12 @@ import {
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { DiceMathSessionRecord } from '../../types';
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 export const CaregiverProgressAnalytics: React.FC = () => {
-  const { setCaregiverScreen, patientProfile } = useApp();
+  const { setCaregiverScreen, patientProfile, language } = useApp();
+  const t = getCaregiverI18n(language);
+  const patientDisplayName = patientProfile?.preferredName || patientProfile?.name || 'Maya Devi';
   const [activeGraphTab, setActiveGraphTab] = useState<'both' | 'engagement' | 'improvement'>('both');
   const [selectedDay, setSelectedDay] = useState<number>(5); // Default to Saturday (Peak day)
 
@@ -117,18 +120,18 @@ export const CaregiverProgressAnalytics: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#24421C] bg-[#DCE7D3] hover:bg-[#CAD8C6] px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>← Back to Patient Summary</span>
+            <span>{t.progress.backBtn}</span>
           </button>
 
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-              Option 5 • Realistic Analytics
+              {t.progress.optionBadge}
             </span>
             <h1 className="text-lg sm:text-xl font-black text-[#2B3E23] leading-tight">
-              5. Weekly Engagement & Improvement Graph
+              {t.progress.title}
             </h1>
             <p className="text-xs text-[#687C62] mt-0.5">
-              Clinical & routine metrics for Maya Devi (MCI Stage 2)
+              {t.progress.subtitle(patientDisplayName)}
             </p>
           </div>
         </div>
@@ -140,75 +143,77 @@ export const CaregiverProgressAnalytics: React.FC = () => {
               audio.playGentleChime();
               setActiveGraphTab('both');
             }}
-            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all ${
+            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all cursor-pointer ${
               activeGraphTab === 'both'
                 ? 'bg-white text-[#24421C] shadow-2xs font-extrabold'
                 : 'text-stone-700 hover:text-stone-900'
             }`}
           >
-            📊 Both Graphs
+            📊 {t.progress.tabBoth}
           </button>
           <button
             onClick={() => {
               audio.playGentleChime();
               setActiveGraphTab('engagement');
             }}
-            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all ${
+            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all cursor-pointer ${
               activeGraphTab === 'engagement'
                 ? 'bg-white text-[#24421C] shadow-2xs font-extrabold'
                 : 'text-stone-700 hover:text-stone-900'
             }`}
           >
-            📅 Weekly Engagement
+            📅 {t.progress.tabEngagement}
           </button>
           <button
             onClick={() => {
               audio.playGentleChime();
               setActiveGraphTab('improvement');
             }}
-            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all ${
+            className={`flex-1 py-2 px-2 text-center rounded-xl transition-all cursor-pointer ${
               activeGraphTab === 'improvement'
                 ? 'bg-white text-[#24421C] shadow-2xs font-extrabold'
                 : 'text-stone-700 hover:text-stone-900'
             }`}
           >
-            📈 Improvement Graph
+            📈 {t.progress.tabImprovement}
           </button>
         </div>
 
         {/* 4 Realistic Key Metric Tiles */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div className="bg-white border border-[#EBE6DC] rounded-2xl p-3 shadow-2xs">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">Weekly Active Total</span>
+            <span className="text-[10px] font-bold text-stone-500 uppercase block">{t.progress.weeklyActiveTitle}</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-[#243B1D]">249</span>
               <span className="text-[11px] text-stone-500">mins</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">Avg: 35.6 min/day</span>
+            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">{t.progress.dailyAvgTitle}: 35.6m</span>
           </div>
 
           <div className="bg-white border border-[#EBE6DC] rounded-2xl p-3 shadow-2xs">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">Routine Adherence</span>
+            <span className="text-[10px] font-bold text-stone-500 uppercase block">{t.progress.adherenceTitle}</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-[#243B1D]">92.3%</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">48 of 52 tasks on time</span>
+            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">{t.progress.targetExceededBadge}</span>
           </div>
 
           <div className="bg-white border border-[#EBE6DC] rounded-2xl p-3 shadow-2xs">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">Recall Precision</span>
+            <span className="text-[10px] font-bold text-stone-500 uppercase block">{t.progress.accuracyByGameTitle}</span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-[#243B1D]">88.5%</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">↑ 16% over 4 weeks</span>
+            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">↑ 16%</span>
           </div>
 
           <div className="bg-white border border-[#EBE6DC] rounded-2xl p-3 shadow-2xs">
-            <span className="text-[10px] font-bold text-stone-500 uppercase block">Hint Independence</span>
+            <span className="text-[10px] font-bold text-stone-500 uppercase block">
+              {language === 'hi' ? 'संकेत स्वतंत्रता' : language === 'as' ? 'সংকেত স্বাধীনতা' : language === 'bn' ? 'ইঙ্গিত স্বাধীনতা' : language === 'mni' ? 'হিন্টস ইন্দিপেন্দেন্স' : language === 'nag' ? 'হিন্টস স্বাধীনতা' : language === 'es' ? 'Independencia de Pistas' : 'Hint Independence'}
+            </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-xl font-black text-[#243B1D]">62.5%</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">Only 3 hints/day</span>
+            <span className="text-[10px] font-bold text-emerald-700 mt-0.5 block">3 hints/day</span>
           </div>
         </div>
 
@@ -498,12 +503,14 @@ export const CaregiverProgressAnalytics: React.FC = () => {
               <div className="font-extrabold flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle className="w-4 h-4 text-[#344E2E]" />
-                  <span>Clinical Assessment (Dr. Anita Verma, Geriatrician):</span>
+                  <span>{t.progress.clinicalNoteTitle} (Dr. Anita Verma, Geriatrician):</span>
                 </div>
-                <span className="text-[10px] text-stone-500">Recorded Yesterday</span>
+                <span className="text-[10px] text-stone-500">
+                  {language === 'hi' ? 'कल दर्ज किया गया' : language === 'as' ? 'কালি নথিভুক্ত কৰা হ’ল' : language === 'bn' ? 'গতকাল নথিভুক্ত করা হয়েছে' : language === 'mni' ? 'ঙরাং রেকোর্দ তৌরে' : language === 'nag' ? 'কালি ৰেকৰ্ড কৰিলে' : language === 'es' ? 'Registrado ayer' : 'Recorded Yesterday'}
+                </span>
               </div>
               <p className="text-[11px] leading-relaxed">
-                "Maya Devi demonstrates consistent improvement in cognitive recognition. Her hint requirement dropped from 8 per session in Week 1 to only 3 this week (-62.5%). Seated motor rhythm tapping is exceptionally stable at 94%. Continue current morning routine schedule."
+                "{patientDisplayName} demonstrates consistent improvement in cognitive recognition. Hint requirement dropped from 8 per session in Week 1 to only 3 this week (-62.5%). Seated motor rhythm tapping is exceptionally stable at 94%. Continue current morning routine schedule."
               </p>
             </div>
           </div>
@@ -518,15 +525,15 @@ export const CaregiverProgressAnalytics: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-[#243B1D]">
-                  Dice Math Journey Performance & Mood
+                  {language === 'hi' ? 'डाइस मैथ जर्नी प्रदर्शन और मनोदशा' : language === 'as' ? 'ডাইচ মেথ জাৰ্নি প্ৰদৰ্শন আৰু মেজাজ' : language === 'bn' ? 'ডাইস ম্যাথ পারফরম্যান্স ও মেজাজ' : language === 'mni' ? 'দাইস মেথ পর্ফোর্মেন্স' : language === 'nag' ? 'ডাইস মেথ জার্নি আৰু মুড' : language === 'es' ? 'Rendimiento y Estado de Ánimo en Juego de Dados' : 'Dice Math Journey Performance & Mood'}
                 </h3>
                 <p className="text-xs text-stone-600">
-                  Adaptive counting, gentle math recall & post-game emotional well-being
+                  {language === 'hi' ? 'अनुकूली गिनती, सौम्य गणित स्मरण और खेल के बाद भावनात्मक कल्याण' : language === 'as' ? 'অনুকূল গণন, মৃদু গণিত সোঁৱৰণ আৰু খেলৰ পিছৰ আৱেগিক সুস্থতা' : language === 'bn' ? 'সহজ গণনা, শান্ত গণিত স্মরণ এবং খেলা শেষে মানসিক সুস্থতা' : language === 'mni' ? 'হৌজিক্কী কাউন্তিং অমসুং নুংঙাইবা ৱাখল' : language === 'nag' ? 'সহজ কাউন্টিং আৰু শান্ত মুড' : language === 'es' ? 'Conteo adaptativo, recuerdo suave y bienestar emocional post-juego' : 'Adaptive counting, gentle math recall & post-game emotional well-being'}
                 </p>
               </div>
             </div>
             <span className="self-start sm:self-auto text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-sangpa-100 text-sangpa-800 border border-sangpa-300">
-              Game Performance • Non-Diagnostic
+              {language === 'hi' ? 'खेल प्रदर्शन • गैर-नैदानिक' : language === 'as' ? 'খেলৰ প্ৰদৰ্শন • অবৈদ্যকীয়' : language === 'bn' ? 'খেলা পারফরম্যান্স • অ-চিকিৎসা' : language === 'mni' ? 'শান্নবা পর্ফোর্মেন্স' : language === 'nag' ? 'খেলৰ এক্টিভিটি' : language === 'es' ? 'Rendimiento del Juego • No Diagnóstico' : 'Game Performance • Non-Diagnostic'}
             </span>
           </div>
 

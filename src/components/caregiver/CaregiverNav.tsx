@@ -16,56 +16,68 @@ import {
 } from 'lucide-react';
 import { CaregiverScreen } from '../../types';
 import { audio } from '../../utils/audio';
-
-// The 5 caregiver options with corrected spelling
-const caregiverSliderItems: { 
-  screen: CaregiverScreen; 
-  label: string; 
-  number: string;
-  icon: React.FC<{ className?: string }>; 
-  description: string;
-}[] = [
-  { 
-    screen: 'patient_profile', 
-    number: '1.', 
-    label: 'Patient Details', 
-    icon: User, 
-    description: 'Personal details, routine schedule & quiet hours' 
-  },
-  { 
-    screen: 'knowledge_assistant', 
-    number: '2.', 
-    label: 'Knowledge Assistant', 
-    icon: Bot, 
-    description: 'AI dementia care advice & guidance' 
-  },
-  { 
-    screen: 'memories', 
-    number: '3.', 
-    label: 'Add Memories', 
-    icon: Heart, 
-    description: 'Family photos, stories & loved ones' 
-  },
-  { 
-    screen: 'alerts', 
-    number: '4.', 
-    label: 'Alerts', 
-    icon: Bell, 
-    description: 'Missed meds, emergency alerts & notices' 
-  },
-  { 
-    screen: 'progress', 
-    number: '5.', 
-    label: 'Weekly Engagement & Improvement Graph', 
-    icon: TrendingUp, 
-    description: 'Active minutes & 4-week cognitive curves' 
-  },
-];
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 export const CaregiverNav: React.FC = () => {
-  const { caregiverScreen, setCaregiverScreen, alerts, setRole, setPatientScreen, device } = useApp();
+  const { 
+    caregiverScreen, 
+    setCaregiverScreen, 
+    alerts, 
+    setRole, 
+    setPatientScreen, 
+    device,
+    language,
+    patientProfile
+  } = useApp();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isMobile = device === 'mobile';
+
+  const t = getCaregiverI18n(language);
+  const patientDisplayName = patientProfile.preferredName || patientProfile.name || 'Maya Devi';
+
+  const caregiverSliderItems: { 
+    screen: CaregiverScreen; 
+    label: string; 
+    number: string;
+    icon: React.FC<{ className?: string }>; 
+    description: string;
+  }[] = [
+    { 
+      screen: 'patient_profile', 
+      number: t.nav.options.patient_profile?.number || '1.', 
+      label: t.nav.options.patient_profile?.label || 'Patient Details', 
+      icon: User, 
+      description: t.nav.options.patient_profile?.description || 'Personal details, routine schedule & quiet hours' 
+    },
+    { 
+      screen: 'knowledge_assistant', 
+      number: t.nav.options.knowledge_assistant?.number || '2.', 
+      label: t.nav.options.knowledge_assistant?.label || 'Knowledge Assistant', 
+      icon: Bot, 
+      description: t.nav.options.knowledge_assistant?.description || 'AI dementia care advice & guidance' 
+    },
+    { 
+      screen: 'memories', 
+      number: t.nav.options.memories?.number || '3.', 
+      label: t.nav.options.memories?.label || 'Add Memories', 
+      icon: Heart, 
+      description: t.nav.options.memories?.description || 'Family photos, stories & loved ones' 
+    },
+    { 
+      screen: 'alerts', 
+      number: t.nav.options.alerts?.number || '4.', 
+      label: t.nav.options.alerts?.label || 'Alerts', 
+      icon: Bell, 
+      description: t.nav.options.alerts?.description || 'Missed meds, emergency alerts & notices' 
+    },
+    { 
+      screen: 'progress', 
+      number: t.nav.options.progress?.number || '5.', 
+      label: t.nav.options.progress?.label || 'Weekly Engagement & Improvement Graph', 
+      icon: TrendingUp, 
+      description: t.nav.options.progress?.description || 'Active minutes & 4-week cognitive curves' 
+    },
+  ];
 
   const unreadAlerts = alerts.filter(a => !a.resolved).length;
 
@@ -93,8 +105,8 @@ export const CaregiverNav: React.FC = () => {
               <Sprout className="w-4 h-4 text-[#4E7037]" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="font-serif font-extrabold text-sm text-[#2B4420] tracking-wider block uppercase">SANGPA</span>
-              <span className="text-[10px] text-stone-500 block truncate">Caregiver Portal</span>
+              <span className="font-serif font-extrabold text-sm text-[#2B4420] tracking-wider block uppercase">{t.nav.portalBrand}</span>
+              <span className="text-[10px] text-stone-500 block truncate">{t.nav.portalSubtitle}</span>
             </div>
           </div>
 
@@ -110,12 +122,12 @@ export const CaregiverNav: React.FC = () => {
             >
               <div className="flex items-center gap-2 min-w-0">
                 <Home className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">Patient Summary</span>
+                <span className="truncate">{t.nav.overview}</span>
               </div>
             </button>
 
             <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 px-3 py-1 block">
-              Caregiver Navigation
+              {t.nav.navigation}
             </span>
 
             {/* The 5 Slider Items */}
@@ -150,13 +162,13 @@ export const CaregiverNav: React.FC = () => {
 
           <div className="p-2.5 bg-white rounded-2xl border border-[#E7E3D8] text-xs text-stone-600 shadow-2xs">
             <div className="flex items-center justify-between font-bold text-stone-900 gap-1">
-              <span className="truncate text-xs">Patient Maya Devi</span>
+              <span className="truncate text-xs">{patientDisplayName}</span>
               <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full flex-shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Online
+                {t.overview.onlineStatus}
               </span>
             </div>
-            <p className="text-[10px] text-stone-500 mt-1 truncate">Battery: 86% • Active 10:42 AM</p>
+            <p className="text-[10px] text-stone-500 mt-1 truncate">{t.overview.batteryStatus(86)} • {t.overview.lastSynced}</p>
           </div>
         </aside>
       )}
@@ -172,8 +184,8 @@ export const CaregiverNav: React.FC = () => {
                 setIsDrawerOpen(true);
               }}
               className="p-1.5 -ml-1 rounded-xl bg-white hover:bg-[#EAE6DC] text-[#2F4A24] border border-[#D5DFC9] shadow-2xs transition-colors cursor-pointer active:scale-95"
-              title="Open Navigation Menu"
-              aria-label="Open Navigation Menu"
+              title={t.nav.menu}
+              aria-label={t.nav.menu}
             >
               <Menu className="w-5 h-5 stroke-[2.4]" />
             </button>
@@ -185,7 +197,7 @@ export const CaregiverNav: React.FC = () => {
             >
               <Sprout className="w-4 h-4 text-[#4E7037]" />
               <span className="text-sm font-black tracking-wider text-[#2B4420] uppercase font-serif">
-                SANGPA
+                {t.nav.portalBrand}
               </span>
             </div>
           </div>
@@ -194,14 +206,14 @@ export const CaregiverNav: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-800 bg-[#EAF2E6] px-2 py-0.5 rounded-full border border-[#D5DFC9]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span>Maya Devi In Sync</span>
+              <span>{patientDisplayName} {t.overview.liveConnected}</span>
             </span>
 
             {unreadAlerts > 0 && (
               <button
                 onClick={() => handleNavClick('alerts')}
                 className="p-1.5 rounded-full bg-rose-100 text-rose-700 relative hover:bg-rose-200 transition-colors cursor-pointer"
-                title="Care Alerts"
+                title={t.nav.options.alerts?.label || "Alerts"}
               >
                 <Bell className="w-3.5 h-3.5" />
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-rose-600 ring-1 ring-white" />
@@ -228,13 +240,13 @@ export const CaregiverNav: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <Sprout className="w-5 h-5 text-[#4E7037]" />
                   <span className="text-base font-black tracking-widest text-[#2B4420] uppercase font-serif">
-                    SANGPA
+                    {t.nav.portalBrand}
                   </span>
                 </div>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
                   className="p-1.5 rounded-full bg-[#E8E4D9] hover:bg-[#DDD8CA] text-stone-700 transition-colors cursor-pointer active:scale-95"
-                  title="Close Menu"
+                  title={t.nav.closeMenu}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -246,11 +258,11 @@ export const CaregiverNav: React.FC = () => {
                 className="flex items-center justify-between bg-white p-2.5 rounded-2xl border border-[#E7E3D8] shadow-2xs cursor-pointer hover:bg-[#FAF8F5] transition-all"
               >
                 <div>
-                  <h4 className="text-xs font-black text-stone-900 truncate">Maya Devi (Kamala Dadi)</h4>
-                  <p className="text-[10px] text-[#4E7037] font-semibold truncate">🟢 Doing Well • MCI Stage 2</p>
+                  <h4 className="text-xs font-black text-stone-900 truncate">{patientDisplayName}</h4>
+                  <p className="text-[10px] text-[#4E7037] font-semibold truncate">🟢 {t.overview.doingWellBadge} • {t.overview.conditionName}</p>
                 </div>
                 <span className="text-[10px] font-bold text-[#344E2E] bg-[#EAF2E6] px-2 py-0.5 rounded-full">
-                  Overview
+                  {t.nav.overview}
                 </span>
               </div>
             </div>
@@ -258,7 +270,7 @@ export const CaregiverNav: React.FC = () => {
             {/* ONLY The 5 Slider Options requested by the user */}
             <div className="p-3 flex-1 space-y-2 overflow-y-auto">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500 px-2 pt-1 block">
-                Caregiver Options
+                {t.nav.navigation}
               </span>
 
               {caregiverSliderItems.map((item) => {
@@ -313,7 +325,7 @@ export const CaregiverNav: React.FC = () => {
                 className="w-full py-2.5 px-3 rounded-2xl bg-[#344E2E] hover:bg-[#2B4420] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 active:scale-98 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>Switch to Patient Screen</span>
+                <span>{t.nav.switchToPatient}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

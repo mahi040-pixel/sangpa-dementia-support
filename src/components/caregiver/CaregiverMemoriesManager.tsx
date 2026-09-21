@@ -15,6 +15,7 @@ import {
   FolderHeart
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 const PRESET_PHOTOS = [
   {
@@ -46,8 +47,13 @@ export const CaregiverMemoriesManager: React.FC = () => {
     toggleFavoriteMemory, 
     toggleFlashcardMemory, 
     setCaregiverScreen,
-    speakMascot
+    speakMascot,
+    language,
+    patientProfile
   } = useApp();
+
+  const t = getCaregiverI18n(language);
+  const patientDisplayName = patientProfile?.preferredName || patientProfile?.name || 'Maya Devi';
 
   const [title, setTitle] = useState('');
   const [relationship, setRelationship] = useState('Daughter (Riya)');
@@ -116,16 +122,16 @@ export const CaregiverMemoriesManager: React.FC = () => {
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#24421C] bg-[#DCE7D3] hover:bg-[#CAD8C6] px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs mb-1"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>← Back to Patient Summary</span>
+          <span>{t.memories.backBtn}</span>
         </button>
         <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-          Option 3
+          {t.memories.optionBadge}
         </span>
         <h2 className="text-xl sm:text-2xl font-black text-sangpa-900 tracking-tight">
-          3. Add Memories
+          {t.memories.title}
         </h2>
         <p className="text-xs sm:text-sm text-sangpa-600 leading-relaxed">
-          Upload cherished family photos, record voice stories & configure cognitive flashcards for Maya Devi.
+          {t.memories.subtitle}
         </p>
       </div>
 
@@ -133,7 +139,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
       {justSaved && (
         <div className="p-3.5 bg-emerald-100 border border-emerald-300 rounded-2xl text-emerald-900 text-xs sm:text-sm font-bold flex items-center gap-2 animate-bounce">
           <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-          <span>New family memory saved and synced to Maya Devi's tablet!</span>
+          <span>{t.memories.memorySavedToast}</span>
         </div>
       )}
 
@@ -148,10 +154,10 @@ export const CaregiverMemoriesManager: React.FC = () => {
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-black text-sangpa-900 leading-tight">
-              Add a New Memory
+              {t.memories.addNewMemoryTitle}
             </h3>
             <p className="text-xs text-sangpa-600">
-              Fill in each detail below to create a meaningful moment
+              {t.memories.subtitle}
             </p>
           </div>
         </div>
@@ -159,7 +165,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3A. Photo Preview & Presets (Stacked Vertically) */}
         <div className="space-y-2">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            1. Select or Preview Photo
+            {language === 'hi' ? '1. फ़ोटो चुनें या पूर्वावलोकन देखें' : language === 'as' ? '১. ফটো বাছক বা পূৰ্বদৰ্শন চাওক' : language === 'bn' ? '১. ফটো নির্বাচন করুন বা পূর্বরূপ দেখুন' : language === 'mni' ? '১. ফোতো খল্লু নত্রগা প্রিভ্যু য়েংঙু' : language === 'nag' ? '১. ফটো বাছি লওক বা প্রিভিউ চাওক' : language === 'es' ? '1. Seleccionar o Previsualizar Foto' : '1. Select or Preview Photo'}
           </label>
           <div className="w-full h-44 sm:h-48 rounded-2xl overflow-hidden bg-sangpa-50 border-2 border-sangpa-200 relative shadow-inner">
             <img 
@@ -177,7 +183,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
           {/* Quick Preset Photo Chips */}
           <div className="space-y-1 pt-1">
             <span className="text-[11px] font-bold text-sangpa-600 block">
-              Choose a sample family photo:
+              {language === 'hi' ? 'नमूना पारिवारिक फ़ोटो चुनें:' : language === 'as' ? 'নমুনা পাৰিবাৰিক ফটো বাছক:' : language === 'bn' ? 'নমুনা পারিবারিক ছবি বেছে নিন:' : language === 'mni' ? 'ফেমিলি ফোতো খল্লু:' : language === 'nag' ? 'ফেমিলি ফটো বাছি লওক:' : language === 'es' ? 'Elige una foto familiar de muestra:' : 'Choose a sample family photo:'}
             </span>
             <div className="flex flex-wrap gap-1.5">
               {PRESET_PHOTOS.map((p, idx) => (
@@ -201,7 +207,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3B. Title / Occasion (Full Width, Arranged Below Photo) */}
         <div className="space-y-1">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            2. Title / Occasion
+            {t.memories.memoryTitleLabel}
           </label>
           <input
             type="text"
@@ -216,7 +222,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3C. Relationship to Maya Devi (Full Width, Arranged Below Title) */}
         <div className="space-y-1">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            3. Relationship to Maya Devi
+            {t.memories.relationshipLabel}
           </label>
           <select
             value={relationship}
@@ -237,7 +243,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3D. Place / Location (Full Width, Arranged Below Relationship) */}
         <div className="space-y-1">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            4. Place / Location
+            {t.memories.locationLabel}
           </label>
           <div className="relative">
             <input
@@ -254,7 +260,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3E. Time / Era (Full Width, Arranged Below Location) */}
         <div className="space-y-1">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            5. Time / Era
+            {t.memories.dateLabel}
           </label>
           <div className="relative">
             <input
@@ -271,7 +277,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         {/* 3F. Story Caption / Context (Full Width, Arranged Below Time) */}
         <div className="space-y-1">
           <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-            6. Memory Story / Context
+            {t.memories.captionLabel}
           </label>
           <textarea
             rows={3}
@@ -286,7 +292,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label className="text-xs font-extrabold text-sangpa-800 uppercase tracking-wide block">
-              7. Mascot Voice Narration
+              {t.memories.audioNoteLabel}
             </label>
             <button
               type="button"
@@ -294,7 +300,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
               className="inline-flex items-center gap-1 text-[11px] font-bold text-sangpa-700 bg-sangpa-100 hover:bg-sangpa-200 px-2.5 py-0.5 rounded-full transition-colors cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" />
-              <span>Audition</span>
+              <span>{language === 'hi' ? 'सुनें' : language === 'as' ? 'শুনক' : language === 'bn' ? 'শুনুন' : language === 'mni' ? 'তাবা' : language === 'nag' ? 'শুনক' : language === 'es' ? 'Audicionar' : 'Audition'}</span>
             </button>
           </div>
           <input
@@ -319,7 +325,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
           />
           <div className="flex-1">
             <span className="text-xs font-bold text-sangpa-900 block">
-              Include in Family Flashcards Game
+              {t.memories.inFlashcardsBadge}
             </span>
             <span className="text-[11px] text-sangpa-600 block">
               Helps Maya Devi recognize loved ones through interactive memory exercises.
@@ -333,7 +339,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
           className="w-full py-3.5 px-5 rounded-2xl bg-sangpa-500 hover:bg-sangpa-600 active:scale-98 text-white font-extrabold text-sm sm:text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
           <Plus className="w-5 h-5" />
-          <span>Save Memory to Family Gallery</span>
+          <span>{t.memories.saveMemoryBtn}</span>
         </button>
       </form>
 
@@ -343,11 +349,11 @@ export const CaregiverMemoriesManager: React.FC = () => {
           <div className="flex items-center gap-2">
             <FolderHeart className="w-5 h-5 text-sangpa-600" />
             <h3 className="text-base sm:text-lg font-black text-sangpa-900">
-              Family Memories ({memories.length})
+              {t.memories.existingMemoriesTitle(memories.length)}
             </h3>
           </div>
           <span className="text-xs font-bold text-sangpa-600 bg-sangpa-100 px-2.5 py-0.5 rounded-full">
-            Active in App
+            {language === 'hi' ? 'ऐप में सक्रिय' : language === 'as' ? 'এপত সক্ৰিয়' : language === 'bn' ? 'অ্যাপে সক্রিয়' : language === 'mni' ? 'এপদা এক্টিভ' : language === 'nag' ? 'এপত এক্টিভ' : language === 'es' ? 'Activo en la App' : 'Active in App'}
           </span>
         </div>
 
@@ -414,7 +420,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
               >
                 <div className="flex items-center gap-2">
                   <Volume2 className="w-4 h-4" />
-                  <span>{playingMemoryId === mem.id ? "Playing Voice Story..." : "Audition Voice Story"}</span>
+                  <span>{playingMemoryId === mem.id ? "Playing Voice Story..." : t.memories.listenStoryBtn}</span>
                 </div>
                 <span className="text-[11px] font-semibold opacity-90">Sangpa Mascot</span>
               </button>
@@ -425,7 +431,7 @@ export const CaregiverMemoriesManager: React.FC = () => {
                 onClick={() => toggleFlashcardMemory(mem.id)}
                 className="w-full py-2.5 px-3.5 rounded-2xl bg-white hover:bg-sangpa-50 border border-sangpa-300 text-xs font-semibold text-sangpa-800 flex items-center justify-between transition-colors cursor-pointer"
               >
-                <span>Included in Family Flashcards:</span>
+                <span>{language === 'hi' ? 'फ़ैमिली फ़्लैशकार्ड में शामिल:' : language === 'as' ? 'পৰিয়ালৰ ফ্লেশকাৰ্ডত অন্তৰ্ভুক্ত:' : language === 'bn' ? 'পারিবারিক ফ্ল্যাশকার্ডে অন্তর্ভুক্ত:' : language === 'mni' ? 'ফেমিলি ফ্লাশকার্ডতা য়াওবা:' : language === 'nag' ? 'ফেমিলি ফ্ল্যাশকার্ডত অন্তর্ভুক্ত:' : language === 'es' ? 'Incluido en Tarjetas Familiares:' : 'Included in Family Flashcards:'}</span>
                 {mem.inFlashcards ? (
                   <span className="flex items-center gap-1 text-emerald-700 font-bold">
                     <CheckSquare className="w-4 h-4 text-emerald-600" />

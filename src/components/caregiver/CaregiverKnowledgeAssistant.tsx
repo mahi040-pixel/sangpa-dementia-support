@@ -22,6 +22,7 @@ import {
   CaregiverAssistantResponse
 } from '../../services/openai';
 import { speechRecognizer, isSpeechRecognitionSupported } from '../../utils/speechRecognition';
+import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 
 interface ChatMessage {
   id: string;
@@ -43,6 +44,7 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
     language 
   } = useApp();
 
+  const t = getCaregiverI18n(language);
   const patientDisplayName = patientProfile.preferredName || patientProfile.name || 'Maya Devi';
 
   const [query, setQuery] = useState('');
@@ -340,12 +342,12 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
   };
 
   const suggestedQuestions = [
-    `How did ${patientDisplayName} do today?`,
-    "Did she take her morning BP medicine and water?",
-    `When is the appointment with Dr. Anita Verma?`,
-    "What should I do if sundowning happens tonight?",
-    "Show this week's cognitive game progress.",
-    "Recommend calming evening activities."
+    t.knowledgeAssistant.sampleQuestions.status,
+    t.knowledgeAssistant.sampleQuestions.appointment,
+    t.knowledgeAssistant.sampleQuestions.games,
+    t.knowledgeAssistant.sampleQuestions.missed,
+    t.knowledgeAssistant.sampleQuestions.sundowning,
+    t.knowledgeAssistant.sampleQuestions.graphs
   ];
 
   return (
@@ -362,24 +364,24 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#24421C] bg-[#DCE7D3] hover:bg-[#CAD8C6] px-3.5 py-1.5 rounded-full transition-all active:scale-95 cursor-pointer shadow-2xs mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>← Back to Patient Summary</span>
+            <span>{t.knowledgeAssistant.backBtn}</span>
           </button>
           
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[10px] font-black uppercase tracking-wider text-[#4E7037] block">
-              Option 2 • AI Dementia Guide
+              {t.knowledgeAssistant.optionBadge}
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-200">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              <span>Live Care Intelligence Active</span>
+              <span>{t.knowledgeAssistant.assistantOnlineBadge}</span>
             </span>
           </div>
 
           <h1 className="text-xl sm:text-2xl font-extrabold text-[#243B1D] tracking-tight flex items-center gap-2 mt-0.5">
-            <span>2. Knowledge Assistant</span>
+            <span>{t.knowledgeAssistant.title}</span>
           </h1>
           <p className="text-xs text-[#5D7257]">
-            Real-time clinical insights, daily status, and caregiving guidance for {patientDisplayName}
+            {t.knowledgeAssistant.subtitle}
           </p>
         </div>
 
@@ -388,10 +390,10 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
           <button
             onClick={handleClearChat}
             className="px-3.5 py-2 rounded-xl bg-white border border-[#E7E3D8] text-stone-700 hover:bg-[#FAF8F5] text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer active:scale-95"
-            title="Clear Chat History"
+            title={t.knowledgeAssistant.clearChatBtn}
           >
             <RotateCcw className="w-3.5 h-3.5 text-stone-500" />
-            <span>Clear Chat</span>
+            <span>{t.knowledgeAssistant.clearChatBtn}</span>
           </button>
         </div>
       </div>
@@ -479,19 +481,19 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
                           ? 'bg-rose-100 text-rose-800 animate-pulse' 
                           : 'text-stone-500 hover:bg-[#FAF8F5] hover:text-stone-800'
                       }`}
-                      title={isSpeakingThis ? "Stop speaking" : "Listen to answer out loud"}
+                      title={isSpeakingThis ? t.knowledgeAssistant.stopAudio : t.knowledgeAssistant.listenAloud}
                     >
                       {isSpeakingThis ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                      <span>{isSpeakingThis ? 'Stop' : 'Listen'}</span>
+                      <span>{isSpeakingThis ? t.knowledgeAssistant.stopAudio : t.knowledgeAssistant.listenAloud}</span>
                     </button>
 
                     <button
                       onClick={() => handleCopy(m.id, m.text)}
                       className="p-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 text-stone-500 hover:bg-[#FAF8F5] hover:text-stone-800 transition-all cursor-pointer"
-                      title="Copy response"
+                      title={t.knowledgeAssistant.copyTooltip}
                     >
                       {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{isCopied ? 'Copied' : 'Copy'}</span>
+                      <span>{isCopied ? t.knowledgeAssistant.copiedTooltip : t.knowledgeAssistant.copyTooltip}</span>
                     </button>
                   </div>
                 )}
@@ -505,8 +507,8 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
           <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-[#E7E3D8] text-xs text-[#2B4420] shadow-2xs animate-pulse max-w-[280px]">
             <Sparkles className="w-4 h-4 text-[#3E6530] animate-spin" />
             <div className="flex flex-col">
-              <span className="font-bold">Analyzing patient care records...</span>
-              <span className="text-[10px] text-stone-500">Synthesizing real-time care guidance</span>
+              <span className="font-bold">{t.knowledgeAssistant.assistantOnlineBadge}...</span>
+              <span className="text-[10px] text-stone-500">{t.knowledgeAssistant.subtitle}</span>
             </div>
           </div>
         )}
@@ -517,7 +519,7 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
       {/* 4. Suggested Questions Grid */}
       <div className="space-y-1.5">
         <span className="text-[10px] font-black text-[#4E7037] uppercase tracking-wider block">
-          Quick Questions (Tap to Ask):
+          {t.knowledgeAssistant.suggestedShortcutsTitle}
         </span>
         <div className="flex flex-wrap gap-1.5">
           {suggestedQuestions.map((suggestion, idx) => (
@@ -542,7 +544,7 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
             disabled={isLoading}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAsk(query)}
-            placeholder={`Ask about ${patientDisplayName}'s vitals, routines, or dementia advice...`}
+            placeholder={t.knowledgeAssistant.inputPlaceholder}
             className="w-full py-3 pl-4 pr-10 rounded-2xl bg-white border border-[#D5DFC9] focus:border-[#344E2E] focus:ring-2 focus:ring-[#DCE7D3] outline-none text-xs sm:text-sm text-stone-900 shadow-2xs transition-all disabled:bg-stone-100"
           />
 
@@ -563,7 +565,7 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
               ? 'bg-rose-600 text-white animate-pulse'
               : 'bg-[#EAF2E6] hover:bg-[#DCE7D3] text-[#24421C] border border-[#CCD8C4]'
           }`}
-          title={isListening ? "Stop listening" : "Speak question"}
+          title={isListening ? t.knowledgeAssistant.stopAudio : "Voice Input"}
         >
           {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
         </button>
@@ -573,7 +575,7 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
           onClick={() => handleAsk(query)}
           disabled={isLoading || !query.trim()}
           className="p-3 rounded-2xl bg-[#2E4A21] hover:bg-[#243B1D] text-white shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Send query"
+          title={t.knowledgeAssistant.sendBtn}
         >
           <Send className="w-4 h-4" />
         </button>
