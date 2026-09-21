@@ -9,7 +9,6 @@ import {
   HeartHandshake, 
   ShieldAlert, 
   Sparkles, 
-  Info, 
   RotateCcw,
   ExternalLink,
   Video as VideoIcon
@@ -177,11 +176,6 @@ export const PatientWellness: React.FC = () => {
   const i18n = PATIENT_I18N[language] || PATIENT_I18N.en;
 
   // Voice guide triggers
-  const handlePlayVoiceFood = () => {
-    const msg = APP_VOICE_RESPONSES.foodVoice[language] || APP_VOICE_RESPONSES.foodVoice.en;
-    speakMascot(msg, 'speaking');
-  };
-
   const handlePlayVoiceHandClaps = () => {
     audio.playCuteChime();
     const prompt = APP_VOICE_RESPONSES.handClapsStart[language] || APP_VOICE_RESPONSES.handClapsStart.en;
@@ -506,67 +500,6 @@ export const PatientWellness: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* DAILY MIND-DIET FOOD SUGGESTION CARD */}
-      <div className="bg-white border-2 border-sangpa-300 rounded-3xl p-5 shadow-card space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="px-3 py-1 rounded-full bg-sangpa-100 text-sangpa-800 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-sangpa-600" />
-            <span>{i18n.mindDietTitle}</span>
-          </span>
-          <button
-            onClick={handlePlayVoiceFood}
-            className="p-2 rounded-full bg-sangpa-100 hover:bg-sangpa-200 text-sangpa-700 transition-colors"
-            title={i18n.listenAgain}
-          >
-            <Volume2 className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-amber-50 border-2 border-amber-200 flex-shrink-0 relative shadow-sm">
-            <img 
-              src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=300&auto=format&fit=crop&q=80" 
-              alt="Khichdi" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          <div className="flex-1 text-center sm:text-left">
-            <h3 className="text-lg sm:text-xl font-bold text-sangpa-900">
-              {language === 'hi' ? 'पालक और अखरोट वाली मूंग दाल खिचड़ी' : 'Moong Dal Khichdi with Spinach & Walnuts'}
-            </h3>
-            <p className="text-xs sm:text-sm text-sangpa-700 mt-1 leading-relaxed">
-              {language === 'hi' 
-                ? 'गर्म और आसानी से पचने वाली खिचड़ी जिसमें ताज़ा पालक और अखरोट मिले हैं।'
-                : 'Warm, easily digestible rice and yellow lentils folded with tender garden spinach and crushed walnuts.'}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1.5 justify-center sm:justify-start">
-              <span className="px-2 py-0.5 rounded-md bg-sangpa-50 text-sangpa-800 text-[11px] font-semibold border border-sangpa-200">
-                🌱 Folate
-              </span>
-              <span className="px-2 py-0.5 rounded-md bg-sangpa-50 text-sangpa-800 text-[11px] font-semibold border border-sangpa-200">
-                🧠 Omega-3
-              </span>
-              <span className="px-2 py-0.5 rounded-md bg-sangpa-50 text-sangpa-800 text-[11px] font-semibold border border-sangpa-200">
-                💛 Easy Digestion
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Caregiver Dietary Note Box */}
-        <div className="p-3 bg-sangpa-50 rounded-2xl border border-sangpa-200 text-xs text-sangpa-800">
-          <div className="flex items-center gap-1.5 font-bold text-sangpa-900 mb-0.5">
-            <Info className="w-3.5 h-3.5 text-sangpa-600" />
-            <span>{i18n.caregiverNote}</span>
-          </div>
-        </div>
-
-        <p className="text-[11px] text-sangpa-500 italic text-center">
-          {i18n.dietDisclaimer}
-        </p>
-      </div>
     </div>
   );
 };
