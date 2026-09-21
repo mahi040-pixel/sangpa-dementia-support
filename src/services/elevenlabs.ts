@@ -1,9 +1,24 @@
 import { LanguageCode } from '../types';
 
-// ElevenLabs Voice Configuration for Sangpa (Voice ID: 9vP6R7VVxNwGIGLnpl17)
-export const ELEVENLABS_VOICE_ID = '9vP6R7VVxNwGIGLnpl17';
+// ElevenLabs Voice Configuration for Sangpa (Voice ID: 5f1FjpWl2X8UqTlgo9Ov)
+export const DEFAULT_VOICE_ID = '5f1FjpWl2X8UqTlgo9Ov';
+export const ELEVENLABS_VOICE_ID = (
+  (typeof process !== 'undefined' && process.env?.ELEVENLABS_VOICE_ID) ||
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ELEVENLABS_VOICE_ID) ||
+  DEFAULT_VOICE_ID
+).trim();
 export const ELEVENLABS_VOICE_NAME = 'Suhana J – Very Young & Joyful Narrator';
 export const ELEVENLABS_MODEL_ID = 'eleven_multilingual_v2';
+
+export class ElevenLabsPaymentRequiredError extends Error {
+  status = 402;
+  details: string;
+  constructor(details: string) {
+    super(`ElevenLabs HTTP 402 Payment Required: Credit limit or tier restriction reached. Changing Voice ID does not resolve account credit/plan limitations. Details: ${details}`);
+    this.name = 'ElevenLabsPaymentRequiredError';
+    this.details = details;
+  }
+}
 
 export const ELEVENLABS_SAMPLE_GREETINGS: Record<LanguageCode, string> = {
   en: 'Namaste Kamala Dadi! I am Sangpa, your loving little granddaughter companion. How are you feeling today?',
@@ -29,11 +44,12 @@ export interface ElevenLabsConnectionStatus {
 
 class ElevenLabsService {
   private apiKey: string = '';
+  private serverVoiceId: string = ELEVENLABS_VOICE_ID;
   private lastStatus: ElevenLabsConnectionStatus = {
     tested: false,
     isValid: true,
     hasVoice: true,
-    message: 'Server-side ElevenLabs voice synthesis (Voice ID: 9vP6R7VVxNwGIGLnpl17) ready.'
+    message: `Server-side ElevenLabs voice synthesis (Voice ID: ${ELEVENLABS_VOICE_ID}) ready.`
   };
 
   constructor() {
@@ -46,7 +62,7 @@ class ElevenLabsService {
   }
 
   getVoiceId(): string {
-    return ELEVENLABS_VOICE_ID;
+    return this.serverVoiceId || ELEVENLABS_VOICE_ID;
   }
 
   getVoiceName(): string {
@@ -85,7 +101,7 @@ class ElevenLabsService {
   hasApiKey(): boolean {
     // True in production and development:
     // The server-side endpoint (/api/tts) holds the ELEVENLABS_API_KEY securely,
-    // protecting it from browser exposure while powering Voice ID 9vP6R7VVxNwGIGLnpl17.
+    // protecting it from browser exposure while powering Voice ID (5f1FjpWl2X8UqTlgo9Ov).
     return true;
   }
 
@@ -137,7 +153,7 @@ class ElevenLabsService {
           characterCount,
           characterLimit,
           message: hasVoice 
-            ? `Connected! Suhana J is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
+            ? `Connected! Voice ID ${ELEVENLABS_VOICE_ID} is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
             : `API Key valid (${(characterLimit - characterCount).toLocaleString()} chars), but Voice ${ELEVENLABS_VOICE_ID} is not yet in VoiceLab.`
         };
         return this.lastStatus;
@@ -147,12 +163,16 @@ class ElevenLabsService {
       const res = await fetch('/api/tts', { method: 'GET' });
       if (res.ok) {
         const data = await res.json();
+        if (data.voiceId) {
+          this.serverVoiceId = data.voiceId;
+        }
+        const activeVoice = this.getVoiceId();
         if (data.configured) {
           this.lastStatus = {
             tested: true,
             isValid: true,
             hasVoice: true,
-            message: `Connected! Secure server ElevenLabs engine (Voice ID: ${ELEVENLABS_VOICE_ID}) is active and ready.`
+            message: `Connected! Secure server ElevenLabs engine (Voice ID: ${activeVoice}) is active and ready.`
           };
         } else {
           this.lastStatus = {
@@ -167,7 +187,7 @@ class ElevenLabsService {
           tested: true,
           isValid: true,
           hasVoice: true,
-          message: `Mascot Voice ID ${ELEVENLABS_VOICE_ID} is ready via server.`
+          message: `Mascot Voice ID ${this.getVoiceId()} is ready via server.`
         };
       }
       return this.lastStatus;
@@ -176,18 +196,19 @@ class ElevenLabsService {
         tested: true,
         isValid: true,
         hasVoice: true,
-        message: `Mascot Voice ID ${ELEVENLABS_VOICE_ID} active.`
+        message: `Mascot Voice ID ${this.getVoiceId()} active.`
       };
       return this.lastStatus;
     }
   }
 
-  // Synthesizes speech via our secure server endpoint /api/tts using Voice ID 9vP6R7VVxNwGIGLnpl17
+  // Synthesizes speech via our secure server endpoint /api/tts using Voice ID
   async synthesizeSpeech(text: string, lang: LanguageCode): Promise<string | null> {
     const cleanText = text.trim();
     if (!cleanText) return null;
 
-    const cacheKey = `${ELEVENLABS_VOICE_ID}_${lang}_${cleanText}`;
+    const currentVoiceId = this.getVoiceId();
+    const cacheKey = `${currentVoiceId}_${lang}_${cleanText}`;
     if (audioBlobCache.has(cacheKey)) {
       return audioBlobCache.get(cacheKey)!;
     }
@@ -195,7 +216,7 @@ class ElevenLabsService {
     try {
       const formattedText = this.formatPromptForMultilingual(cleanText, lang);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 9000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout for cold starts and multi-lingual generation
 
       const response = await fetch('/api/tts', {
         method: 'POST',
@@ -205,27 +226,84 @@ class ElevenLabsService {
         body: JSON.stringify({
           text: formattedText,
           lang,
-          voiceId: ELEVENLABS_VOICE_ID,
+          voiceId: currentVoiceId,
           apiKey: this.apiKey || undefined
         }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        console.warn(`[TTS Server Endpoint Status ${response.status}]`);
-        return null;
+      if (response.ok) {
+        const blob = await response.blob();
+        if (blob.size > 200) {
+          const blobUrl = URL.createObjectURL(blob);
+          audioBlobCache.set(cacheKey, blobUrl);
+          return blobUrl;
+        }
       }
 
-      const blob = await response.blob();
-      if (blob.size > 200) {
-        const blobUrl = URL.createObjectURL(blob);
-        audioBlobCache.set(cacheKey, blobUrl);
-        return blobUrl;
+      // Log clear error if server endpoint responded with error
+      const errData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+      console.error(`[ElevenLabs TTS Client] ElevenLabs TTS request failed (HTTP ${response.status}):`, errData);
+
+      // Explicitly report HTTP 402 Payment Required / Credit Limit without suppressing
+      if (response.status === 402) {
+        const detailMsg = typeof errData === 'object' && (errData?.details || errData?.error)
+          ? `${errData.error || ''}: ${errData.details || ''}`.trim()
+          : JSON.stringify(errData);
+        throw new ElevenLabsPaymentRequiredError(detailMsg);
       }
+
+      // Direct ElevenLabs API fallback if client-side key exists
+      const directKey = this.apiKey || (import.meta as any).env?.VITE_ELEVENLABS_API_KEY;
+      if (directKey && directKey.length > 5) {
+        try {
+          const directRes = await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${currentVoiceId}?output_format=mp3_44100_128`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'xi-api-key': directKey,
+                'Accept': 'audio/mpeg'
+              },
+              body: JSON.stringify({
+                text: formattedText,
+                model_id: ELEVENLABS_MODEL_ID,
+                voice_settings: {
+                  stability: 0.55,
+                  similarity_boost: 0.85,
+                  use_speaker_boost: true
+                }
+              })
+            }
+          );
+
+          if (!directRes.ok && directRes.status === 402) {
+            const errText = await directRes.text();
+            throw new ElevenLabsPaymentRequiredError(errText);
+          }
+
+          if (directRes.ok) {
+            const blob = await directRes.blob();
+            if (blob.size > 200) {
+              const blobUrl = URL.createObjectURL(blob);
+              audioBlobCache.set(cacheKey, blobUrl);
+              return blobUrl;
+            }
+          }
+        } catch (directErr) {
+          if (directErr instanceof ElevenLabsPaymentRequiredError) {
+            throw directErr;
+          }
+          console.error('[ElevenLabs Direct Client Fallback Error]', directErr);
+        }
+      }
+
       return null;
-    } catch (err) {
-      console.warn('[ElevenLabs Speech Synthesis Request]', err);
+    } catch (err: any) {
+      const isAbort = err?.name === 'AbortError';
+      console.error('[ElevenLabs TTS Client] ElevenLabs TTS request failed:', isAbort ? 'Timed out after 20s' : err?.message);
       return null;
     }
   }

@@ -250,30 +250,22 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
   // Text-To-Speech Read Aloud
   const handleReadAloud = (messageId: string, textToSpeak: string) => {
     if (currentlySpeakingId === messageId) {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
+      audio.stopSpeaking();
       setCurrentlySpeakingId(null);
       return;
     }
 
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      // Clean up markdown characters for speech
-      const plainText = textToSpeak
-        .replace(/[*#_`•-]/g, ' ')
-        .replace(/\n+/g, '. ')
-        .trim();
+    audio.stopSpeaking();
+    // Clean up markdown characters for speech
+    const plainText = textToSpeak
+      .replace(/[*#_`•-]/g, ' ')
+      .replace(/\n+/g, '. ')
+      .trim();
 
-      const utterance = new SpeechSynthesisUtterance(plainText);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      utterance.onend = () => setCurrentlySpeakingId(null);
-      utterance.onerror = () => setCurrentlySpeakingId(null);
-
-      setCurrentlySpeakingId(messageId);
-      window.speechSynthesis.speak(utterance);
-    }
+    setCurrentlySpeakingId(messageId);
+    audio.speak(plainText, 'en-IN', () => {
+      setCurrentlySpeakingId(null);
+    });
   };
 
   // Copy Message to Clipboard

@@ -13,7 +13,7 @@ const ttsPlugin = () => ({
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({
           configured: hasKey,
-          voiceId: process.env.ELEVENLABS_VOICE_ID || '9vP6R7VVxNwGIGLnpl17',
+          voiceId: process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || '5f1FjpWl2X8UqTlgo9Ov',
           message: 'Local Vite dev TTS endpoint active'
         }));
         return;
@@ -74,12 +74,83 @@ const ttsPlugin = () => ({
         }
       });
     });
+    server.middlewares.use('/api/chat', async (req: any, res: any) => {
+      const apiKey = (process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || '').trim();
+      if (req.method === 'GET') {
+        const hasKey = apiKey.length > 10;
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+          configured: hasKey,
+          model: 'gpt-4o-mini',
+          message: hasKey ? 'Dev OpenAI chat endpoint ready' : 'OPENAI_API_KEY not configured'
+        }));
+        return;
+      }
+      if (req.method !== 'POST') {
+        res.statusCode = 405;
+        res.end('Method Not Allowed');
+        return;
+      }
+      let body = '';
+      req.on('data', (chunk: any) => { body += chunk; });
+      req.on('end', async () => {
+        try {
+          const { messages, apiKey: clientApiKey, model = 'gpt-4o-mini' } = JSON.parse(body || '{}');
+          const effectiveKey = (apiKey || clientApiKey || '').trim();
+          if (!effectiveKey) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'Missing OPENAI_API_KEY in environment variables' }));
+            return;
+          }
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${effectiveKey}`
+            },
+            body: JSON.stringify({ model, messages, max_tokens: 140, temperature: 0.7 })
+          });
+          if (!response.ok) {
+            const errText = await response.text();
+            res.statusCode = response.status;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(errText);
+            return;
+          }
+          const data = await response.json();
+          const rawReply = data?.choices?.[0]?.message?.content?.trim() || '';
+          const cleanReply = rawReply
+            .replace(/\*.*?\*/g, '')
+            .replace(/\(.*?\)/g, (match: string) => {
+              if (/smile|laugh|giggle|hug|pause|whisper|nod|gentle/i.test(match)) return '';
+              return match;
+            })
+            .replace(/[*_#`~]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ text: cleanReply || rawReply, raw: rawReply, model: data?.model }));
+        } catch (e: any) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+    });
   }
 });
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), ttsPlugin()],
+  define: {
+    'process.env.ELEVENLABS_VOICE_ID': JSON.stringify(
+      process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || '5f1FjpWl2X8UqTlgo9Ov'
+    )
+  },
   server: {
     port: 5173,
     host: true

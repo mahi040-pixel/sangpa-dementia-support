@@ -7,8 +7,12 @@ import json
 import urllib.request
 import urllib.error
 
-# ElevenLabs Authentic Mascot Voice Configuration (Suhana J – Very Young & Joyful Narrator)
-ELEVENLABS_VOICE_ID = "9vP6R7VVxNwGIGLnpl17"
+# ElevenLabs Authentic Mascot Voice Configuration
+ELEVENLABS_VOICE_ID = (
+    os.environ.get("ELEVENLABS_VOICE_ID")
+    or os.environ.get("VITE_ELEVENLABS_VOICE_ID")
+    or "5f1FjpWl2X8UqTlgo9Ov"
+)
 ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
 
 # High-Pitch Edge Neural Voice Timbre Map (+28Hz to +32Hz) modeled to match Suhana J's young child persona

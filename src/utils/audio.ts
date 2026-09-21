@@ -583,7 +583,7 @@ class AudioManager {
       return;
     }
 
-    // 3. Try ElevenLabs Multilingual v2 with Voice ID 9vP6R7VVxNwGIGLnpl17 (Suhana J) if configured
+    // 3. Try ElevenLabs Multilingual v2 with configured Voice ID (process.env.ELEVENLABS_VOICE_ID or fallback 5f1FjpWl2X8UqTlgo9Ov)
     if (elevenLabsService.hasApiKey()) {
       try {
         const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
@@ -592,7 +592,15 @@ class AudioManager {
           await this.playAudioAsset(audioUrl, onEnd);
           return;
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
+          console.error(
+            '[ElevenLabs HTTP 402 Payment Required] ElevenLabs account credit limit or tier restriction reached. Browser speech fallback suppressed per configuration:',
+            err.message
+          );
+          if (onEnd) onEnd();
+          return; // DO NOT bypass, DO NOT fall back to browser speech
+        }
         console.warn('[ElevenLabs Synthesis Fallback]', err);
       }
     }
@@ -600,18 +608,29 @@ class AudioManager {
     // 4. Dynamic High-Fidelity Companion Voice Synthesis via /api/tts (ElevenLabs or Suhana J child neural)
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           text, 
           lang: langCode,
+          voiceId: elevenLabsService.getVoiceId(),
           apiKey: elevenLabsService.getApiKey()
         }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
+
+      if (res.status === 402) {
+        const errJson = await res.json().catch(() => ({}));
+        console.error(
+          '[ElevenLabs HTTP 402 Payment Required] Endpoint returned HTTP 402: Account credit exhausted. Browser speech fallback suppressed per configuration.',
+          errJson
+        );
+        if (onEnd) onEnd();
+        return; // DO NOT bypass, DO NOT fall back to browser speech
+      }
 
       if (res.ok) {
         const blob = await res.blob();
@@ -627,6 +646,7 @@ class AudioManager {
     }
 
     // 5. Emergency offline browser acoustic child companion speech
+    console.warn('[Voice Engine Fallback] ElevenLabs TTS request failed; using emergency browser speech synthesis.');
     this.speakFallback(text, lang, onEnd);
   }
 
@@ -702,12 +722,12 @@ class AudioManager {
     }
   }
 
-  // Play the authentic bundled sample of Suhana J from ElevenLabs (Voice 9vP6R7VVxNwGIGLnpl17)
+  // Play the authentic bundled sample of Suhana J from ElevenLabs (Voice 5f1FjpWl2X8UqTlgo9Ov)
   playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
     return this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
   }
 
-  // Play authentic Hindi sample of Sangpa (Voice 9vP6R7VVxNwGIGLnpl17 persona)
+  // Play authentic Hindi sample of Sangpa (Voice 5f1FjpWl2X8UqTlgo9Ov persona)
   playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
     return this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
   }
