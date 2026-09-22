@@ -16,7 +16,12 @@ import {
   Wifi,
   BatteryCharging,
   UtensilsCrossed,
-  ChevronRight
+  ChevronRight,
+  MapPin,
+  Radio,
+  Stethoscope,
+  RefreshCw,
+  Map
 } from 'lucide-react';
 import { audio } from '../../utils/audio';
 import { getCaregiverI18n } from '../../utils/caregiverLocalization';
@@ -30,10 +35,29 @@ export const CaregiverOverview: React.FC = () => {
     setRole,
     setPatientScreen,
     language,
-    dietPlan
+    dietPlan,
+    caregiverRole
   } = useApp();
 
   const [nudgeSent, setNudgeSent] = useState(false);
+  const [isPingingGps, setIsPingingGps] = useState(false);
+  const [gpsPingFeedback, setGpsPingFeedback] = useState<string | null>(null);
+  const [showMiniMap, setShowMiniMap] = useState(false);
+
+  const handlePingGps = () => {
+    if (isPingingGps) return;
+    setIsPingingGps(true);
+    audio.playGentleChime();
+    setTimeout(() => {
+      setIsPingingGps(false);
+      setGpsPingFeedback(
+        language === 'hi'
+          ? 'जीपीएस सत्यापित: सुरक्षित क्षेत्र में (सटीकता ±4 मी)'
+          : 'GPS Verified: Safe at Home (Accuracy ±4m)'
+      );
+      setTimeout(() => setGpsPingFeedback(null), 3500);
+    }, 700);
+  };
   const patientDisplayName = patientProfile.preferredName || patientProfile.name || 'Maya Devi';
   const t = getCaregiverI18n(language);
 
@@ -206,6 +230,177 @@ export const CaregiverOverview: React.FC = () => {
               <span className="truncate">{patientProfile.lastActive || '10:42 AM'}</span>
             </div>
           </div>
+        </div>
+
+        {/* 1B. Live GPS & Safe-Zone Geofence (Clean & Compact for Doctor, Nurse & Family) */}
+        <div className="bg-white rounded-3xl p-4 border border-[#E7E3D8] shadow-xs space-y-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-2xl bg-[#EAF2E6] text-[#2F4E24] flex items-center justify-center flex-shrink-0 shadow-2xs">
+                <MapPin className="w-4 h-4 text-[#3E6530]" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-extrabold text-sm sm:text-base text-[#243B1D] leading-none">
+                    {language === 'hi' ? 'लाइव जीपीएस एवं सुरक्षित क्षेत्र' :
+                     language === 'as' ? 'লাইভ জিপিএছ আৰু সুৰক্ষিত স্থান' :
+                     language === 'bn' ? 'লাইভ জিপিএস এবং নিরাপদ এলাকা' :
+                     'Live GPS & Safe Zone'}
+                  </h3>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{language === 'hi' ? 'सक्रिय' : 'Live'}</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-stone-500 mt-1 truncate">
+                  {language === 'hi' ? 'घर का शयनकक्ष • तेजपुर, असम (26.6528° N, 92.7926° E)' : 'Home Residence • Tezpur, Assam (26.6528° N, 92.7926° E)'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handlePingGps}
+                disabled={isPingingGps}
+                title="Ping GPS"
+                className="p-1.5 px-2.5 rounded-xl bg-[#FAF8F5] hover:bg-[#EAE5D9] text-[#243B1D] border border-[#DDD7C9] text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+              >
+                <RefreshCw className={`w-3 h-3 text-[#3E6530] ${isPingingGps ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{language === 'hi' ? 'पिंग करें' : 'Ping'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowMiniMap(!showMiniMap)}
+                className={`p-1.5 px-2.5 rounded-xl border text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer ${
+                  showMiniMap 
+                    ? 'bg-[#EAF2E6] text-[#24421C] border-[#CCD8C4]' 
+                    : 'bg-[#FAF8F5] hover:bg-[#EAE5D9] text-[#243B1D] border-[#DDD7C9]'
+                }`}
+              >
+                <Map className="w-3 h-3 text-[#3E6530]" />
+                <span>{showMiniMap ? (language === 'hi' ? 'नक्शा छिपाएं' : 'Hide') : (language === 'hi' ? 'नक्शा' : 'Map')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Location Badges & Status Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+            <div className="p-2 rounded-xl bg-[#FAF8F5] border border-[#EBE6DC] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[10px] text-stone-400 block leading-tight">{language === 'hi' ? 'दायरा' : 'Geofence'}</span>
+                <span className="font-extrabold text-[#243B1D] truncate block">{language === 'hi' ? 'सुरक्षित क्षेत्र (200मी.)' : 'Safe Zone (200m)'}</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-[#FAF8F5] border border-[#EBE6DC] flex items-center gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[10px] text-stone-400 block leading-tight">{language === 'hi' ? 'सटीकता' : 'Accuracy'}</span>
+                <span className="font-extrabold text-[#243B1D] truncate block">±4m (GNSS/NavIC)</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-[#FAF8F5] border border-[#EBE6DC] col-span-2 sm:col-span-1 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[10px] text-stone-400 block leading-tight">{language === 'hi' ? 'स्थिति' : 'Patient State'}</span>
+                <span className="font-extrabold text-[#243B1D] truncate block">{language === 'hi' ? 'घर पर स्थिर' : 'Stationary at Home'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Role-Specific Perspective Banner */}
+          {caregiverRole === 'doctor' && (
+            <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200 text-[11px] text-blue-950 flex items-start gap-2">
+              <Stethoscope className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="leading-snug">
+                <strong>{language === 'hi' ? 'डॉक्टर अवलोकन:' : 'Doctor Review:'}</strong>{' '}
+                {language === 'hi'
+                  ? 'मरीज सामान्य रूप से घर के सुरक्षित दायरे में हैं। पिछले 24 घंटों में भटकाव की कोई घटना दर्ज नहीं हुई।'
+                  : 'Patient is resting within normal baseline home perimeter. Zero wandering anomalies recorded in the past 24h.'}
+              </p>
+            </div>
+          )}
+
+          {caregiverRole === 'nurse' && (
+            <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-950 flex items-start gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <p className="leading-snug">
+                <strong>{language === 'hi' ? 'नर्स निगरानी:' : 'Nurse Duty:'}</strong>{' '}
+                {language === 'hi'
+                  ? '200मी. सुरक्षित दायरा सक्रिय है। यदि मरीज इस परिधि से बाहर जाता है तो तुरंत अलर्ट नर्सिंग डेस्क को जाएगा।'
+                  : 'Active 200m perimeter monitoring. Automated emergency notifications armed if patient exits safe zone.'}
+              </p>
+            </div>
+          )}
+
+          {caregiverRole === 'family' && (
+            <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200 text-[11px] text-amber-950 flex items-start gap-2">
+              <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500 flex-shrink-0 mt-0.5" />
+              <p className="leading-snug">
+                <strong>{language === 'hi' ? 'पारिवारिक सुरक्षा:' : 'Family Peace of Mind:'}</strong>{' '}
+                {language === 'hi'
+                  ? `${patientDisplayName} तेजपुर में घर पर सुरक्षित हैं। जीपीएस लगातार सक्रिय निगरानी में है।`
+                  : `${patientDisplayName} is resting safely at home in Tezpur. Live satellite connection active.`}
+              </p>
+            </div>
+          )}
+
+          {/* Ping verification feedback toast */}
+          {gpsPingFeedback && (
+            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold text-center animate-in fade-in flex items-center justify-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{gpsPingFeedback}</span>
+            </div>
+          )}
+
+          {/* Expandable Compact Stylized SVG Map View */}
+          {showMiniMap && (
+            <div className="relative rounded-2xl overflow-hidden border border-[#D5DFC9] bg-[#E8EFE2] h-32 w-full flex items-center justify-center animate-in fade-in duration-200">
+              <svg className="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#687C62" strokeWidth="0.5" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                <path d="M -10 64 Q 100 20, 200 70 T 450 50" fill="none" stroke="#D3DCB9" strokeWidth="6" />
+                <path d="M 80 -10 Q 90 80, 160 140" fill="none" stroke="#CBD7B2" strokeWidth="4" />
+              </svg>
+
+              {/* Safe Zone Geofence Circle */}
+              <div className="absolute w-24 h-24 rounded-full border-2 border-dashed border-emerald-600/70 bg-emerald-500/10 flex items-center justify-center animate-pulse">
+                <span className="absolute -top-3 text-[9px] font-black uppercase text-emerald-800 bg-white/90 px-1.5 py-0.2 rounded-full border border-emerald-300">
+                  200m Safe Zone
+                </span>
+              </div>
+
+              {/* Pinpoint & Beacon */}
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-md border-2 border-white">
+                    <MapPin className="w-4 h-4 fill-current" />
+                  </div>
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                </div>
+                <div className="bg-white/95 px-2 py-0.5 rounded-md shadow-xs border border-emerald-200 mt-1">
+                  <span className="text-[10px] font-extrabold text-[#243B1D] whitespace-nowrap">
+                    {patientDisplayName} • Tezpur Home
+                  </span>
+                </div>
+              </div>
+
+              <div className="absolute bottom-1 right-2 text-[9px] text-stone-500 font-mono bg-white/80 px-1 rounded">
+                26.6528°N, 92.7926°E
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 2. Today's Patient Care Summary at a Glance */}

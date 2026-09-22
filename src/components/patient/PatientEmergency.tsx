@@ -7,7 +7,6 @@ import {
   ShieldAlert, 
   PhoneCall, 
   X, 
-  MapPin, 
   CheckCircle,
   Volume2
 } from 'lucide-react';
@@ -96,20 +95,6 @@ export const PatientEmergency: React.FC = () => {
           <ShieldAlert className="w-3.5 h-3.5 text-emergency-600" />
           <span>{i18n.activeGuard}</span>
         </div>
-      </div>
-
-      {/* Patient Location & Status */}
-      <div className="bg-white border border-emergency-200 rounded-2xl p-3.5 flex items-center justify-between text-xs text-sangpa-800">
-        <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <div>
-            <span className="font-bold">{i18n.currentLocationLabel} </span>
-            <span>{i18n.currentLocationVal}</span>
-          </div>
-        </div>
-        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md">
-          {language === 'hi' ? 'जीपीएस सक्रिय' : 'GPS Live'}
-        </span>
       </div>
 
       {/* 5-Second Cancel Countdown Alert Banner */}
