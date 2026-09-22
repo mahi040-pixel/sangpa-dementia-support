@@ -2,7 +2,7 @@ export type LanguageCode = 'en' | 'hi' | 'as' | 'bn' | 'mni' | 'nag' | 'es';
 
 export type TextScale = 'normal' | 'large' | 'xlarge';
 
-export type UserRole = 'opening' | 'patient' | 'caregiver' | 'healthcare';
+export type UserRole = 'opening' | 'patient' | 'caregiver' | 'healthcare' | 'caregiver_login';
 
 export type DeviceViewport = 'mobile' | 'tablet' | 'desktop';
 

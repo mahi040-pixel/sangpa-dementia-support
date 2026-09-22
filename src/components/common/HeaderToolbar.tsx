@@ -67,7 +67,7 @@ export const HeaderToolbar: React.FC = () => {
           <button
             onClick={() => handleRoleChange('caregiver')}
             className={`px-3 py-1 rounded transition-all text-xs font-bold flex items-center gap-1.5 ${
-              role === 'caregiver' ? 'bg-sangpa-500 text-white shadow-sm' : 'text-sangpa-300 hover:text-white'
+              (role === 'caregiver' || role === 'caregiver_login') ? 'bg-sangpa-500 text-white shadow-sm' : 'text-sangpa-300 hover:text-white'
             }`}
           >
             <User className="w-3.5 h-3.5" />

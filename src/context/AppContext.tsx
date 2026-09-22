@@ -97,7 +97,7 @@ interface AppContextType {
   setCaregiverRole: (r: CaregiverRole) => void;
   caregiverUser: { name: string; role: CaregiverRole; title: string };
   isCaregiverAuthenticated: boolean;
-  loginCaregiver: (role: CaregiverRole, name?: string) => void;
+  loginCaregiver: (role: CaregiverRole, name?: string, title?: string) => void;
   logoutCaregiver: () => void;
 
   dietPlan: DietPlan;
@@ -291,10 +291,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return initialCareTeam;
   });
 
+  const [customCaregiverName, setCustomCaregiverName] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sangpa_caregiver_name') || '';
+    }
+    return '';
+  });
+
+  const [customCaregiverTitle, setCustomCaregiverTitle] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sangpa_caregiver_title') || '';
+    }
+    return '';
+  });
+
   const caregiverUser = {
-    name: caregiverRole === 'doctor' ? 'Dr. Anita Verma' : caregiverRole === 'nurse' ? 'Nurse Priya Sharma' : 'Rohan Sharma',
+    name: customCaregiverName || (caregiverRole === 'doctor' ? 'Dr. Anita Verma' : caregiverRole === 'nurse' ? 'Nurse Priya Sharma' : 'Rohan Sharma'),
     role: caregiverRole,
-    title: caregiverRole === 'doctor' ? 'Primary Geriatrician' : caregiverRole === 'nurse' ? 'Home Care Attendant' : 'Family Member (Son)'
+    title: customCaregiverTitle || (caregiverRole === 'doctor' ? 'Lead Geriatrician' : caregiverRole === 'nurse' ? 'Home Care Attendant' : 'Family Member (Son)')
   };
   
   const [language, setLanguage] = useState<LanguageCode>('en');
@@ -514,11 +528,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPendingSyncCount(0);
   };
 
-  const loginCaregiver = (targetRole: CaregiverRole, name?: string) => {
+  const loginCaregiver = (targetRole: CaregiverRole, name?: string, title?: string) => {
     audio.playSuccessJingle();
     setCaregiverRole(targetRole);
+    const chosenName = name || (targetRole === 'doctor' ? 'Dr. Anita Verma' : targetRole === 'nurse' ? 'Nurse Priya Sharma' : 'Rohan Sharma');
+    const chosenTitle = title || (targetRole === 'doctor' ? 'Lead Geriatrician' : targetRole === 'nurse' ? 'Home Care Attendant' : 'Family Member (Son)');
+    setCustomCaregiverName(chosenName);
+    setCustomCaregiverTitle(chosenTitle);
     setIsCaregiverAuthenticated(true);
     if (typeof window !== 'undefined') {
+      localStorage.setItem('sangpa_caregiver_name', chosenName);
+      localStorage.setItem('sangpa_caregiver_title', chosenTitle);
       localStorage.setItem('sangpa_caregiver_role', targetRole);
       localStorage.setItem('sangpa_caregiver_auth', 'true');
     }
@@ -532,7 +552,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('sangpa_caregiver_auth');
     }
-    setRole('opening');
+    setRole('caregiver_login');
   };
 
   const updateDietPlan = (p: DietPlan) => {

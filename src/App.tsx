@@ -28,6 +28,7 @@ import { DiceMathJourneyGame } from './components/patient/games/DiceMathJourneyG
 import { DiceMovementGame } from './components/patient/games/DiceMovementGame';
 
 // Caregiver Components
+import { CaregiverLoginScreen } from './components/caregiver/CaregiverLoginScreen';
 import { CaregiverNav, CaregiverMobileBottomNav } from './components/caregiver/CaregiverNav';
 import { CaregiverOverview } from './components/caregiver/CaregiverOverview';
 import { CaregiverKnowledgeAssistant } from './components/caregiver/CaregiverKnowledgeAssistant';
@@ -129,6 +130,7 @@ const AppContent: React.FC = () => {
       {/* Main Experience Viewport */}
       <DeviceFrame>
         {role === 'opening' && <OpeningScreen />}
+        {role === 'caregiver_login' && <CaregiverLoginScreen />}
 
         {role === 'patient' && (
           <div className="flex-1 flex flex-col min-h-full">
