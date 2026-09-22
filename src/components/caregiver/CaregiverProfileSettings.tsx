@@ -12,10 +12,6 @@ import {
   Save, 
   Sparkles,
   Bot,
-  Key,
-  ExternalLink,
-  AlertTriangle,
-  CheckCircle2,
   ArrowLeft,
   ShieldCheck,
   HeartHandshake
@@ -24,9 +20,6 @@ import { audio } from '../../utils/audio';
 import { LanguageCode } from '../../types';
 import { getCaregiverI18n } from '../../utils/caregiverLocalization';
 import { 
-  elevenLabsService, 
-  ELEVENLABS_VOICE_ID, 
-  ELEVENLABS_VOICE_NAME, 
   ELEVENLABS_SAMPLE_GREETINGS 
 } from '../../services/elevenlabs';
 
@@ -81,13 +74,9 @@ export const CaregiverProfileSettings: React.FC = () => {
     updatePatientProfile({ preferredName: val });
   };
 
-  const [elevenLabsKey, setElevenLabsKey] = useState(elevenLabsService.getApiKey());
-  const [keySaved, setKeySaved] = useState(false);
   const [testLang, setTestLang] = useState<LanguageCode>(language);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const [isPlayingHindi, setIsPlayingHindi] = useState(false);
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [connectionResult, setConnectionResult] = useState<any>(null);
 
   const handlePlayAuthenticSample = async () => {
     if (isPlayingPreview) {
@@ -117,24 +106,6 @@ export const CaregiverProfileSettings: React.FC = () => {
     await audio.testSuhanaVoice(langToTest);
   };
 
-  const handleSaveElevenLabsKey = () => {
-    elevenLabsService.setApiKey(elevenLabsKey);
-    setKeySaved(true);
-    audio.playSuccessJingle();
-    setTimeout(() => setKeySaved(false), 3000);
-  };
-
-  const handleTestConnection = async () => {
-    setIsTestingConnection(true);
-    elevenLabsService.setApiKey(elevenLabsKey);
-    const res = await elevenLabsService.testConnection();
-    setConnectionResult(res);
-    setIsTestingConnection(false);
-    if (res.isValid) {
-      audio.playSuccessJingle();
-    }
-  };
-
   const handleAuditionSound = (sound: 'chime' | 'temple_bell' | 'forest_birds' | 'family_voice') => {
     if (sound === 'chime') audio.playGentleChime();
     else if (sound === 'temple_bell') audio.playTempleBell();
@@ -145,11 +116,6 @@ export const CaregiverProfileSettings: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Save ElevenLabs API key when saving overall profile
-    if (elevenLabsKey) {
-      elevenLabsService.setApiKey(elevenLabsKey);
-    }
-
     updatePatientProfile({
       name,
       preferredName,
@@ -532,98 +498,6 @@ export const CaregiverProfileSettings: React.FC = () => {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* ElevenLabs API Key Setup & Cloud Diagnostics */}
-        <div className="pt-3 border-t border-sangpa-100 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <label className="text-xs font-bold text-sangpa-700 flex items-center gap-1.5">
-              <Key className="w-3.5 h-3.5 text-sangpa-600" />
-              <span>ElevenLabs API Key (Cloud Voice Synthesis)</span>
-            </label>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
-              elevenLabsService.hasApiKey()
-                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                : 'bg-sangpa-100 text-sangpa-700 border border-sangpa-200'
-            }`}>
-              {elevenLabsService.hasApiKey() ? '● Cloud Key Configured' : '● Authentic Local Engine Active'}
-            </span>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2.5">
-            <input
-              type="password"
-              value={elevenLabsKey}
-              onChange={e => {
-                setElevenLabsKey(e.target.value);
-                elevenLabsService.setApiKey(e.target.value);
-              }}
-              placeholder="Paste xi-api-key here (e.g. sk_...)"
-              className="flex-1 p-2.5 rounded-xl border border-sangpa-300 text-xs font-mono text-sangpa-900 focus:border-sangpa-500 outline-none bg-sangpa-50/20"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleSaveElevenLabsKey}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-sangpa-500 hover:bg-sangpa-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
-              >
-                {keySaved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-                <span>{keySaved ? 'Saved!' : 'Save Key'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleTestConnection}
-                disabled={isTestingConnection}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-sangpa-800 hover:bg-sangpa-900 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 disabled:opacity-50 cursor-pointer"
-              >
-                <Sparkles className={`w-3.5 h-3.5 ${isTestingConnection ? 'animate-spin' : ''}`} />
-                <span>{isTestingConnection ? 'Testing...' : 'Test Connection'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Connection Test Diagnostic Banner */}
-          {connectionResult && (
-            <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 animate-fadeIn ${
-              connectionResult.isValid && connectionResult.hasVoice
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                : connectionResult.isValid && !connectionResult.hasVoice
-                ? 'bg-amber-50 border-amber-300 text-amber-900'
-                : 'bg-rose-50 border-rose-300 text-rose-900'
-            }`}>
-              <div className="flex items-start gap-2">
-                {connectionResult.isValid && connectionResult.hasVoice ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1 space-y-1">
-                  <p className="font-bold">{connectionResult.message}</p>
-                  
-                  {connectionResult.isValid && !connectionResult.hasVoice && (
-                    <div className="pt-1">
-                      <p className="text-[11px] text-amber-800">
-                        In ElevenLabs, shared voices must be added to your VoiceLab once before API access:
-                      </p>
-                      <a 
-                        href={`https://elevenlabs.io/voices/${ELEVENLABS_VOICE_ID}`} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-amber-900 underline hover:text-amber-950"
-                      >
-                        <span>Open Suhana J on ElevenLabs and click "Add to VoiceLab"</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <p className="text-[11px] text-sangpa-500 leading-relaxed">
-            ✨ Sangpa speaks in the joyful child companion persona (Voice ID: <code className="font-mono bg-sangpa-100 px-1 py-0.5 rounded">{ELEVENLABS_VOICE_ID}</code>). With an active ElevenLabs key, cloud synthesis generates dynamic replies. Even without cloud credits, the app uses pre-rendered authentic child voice files across all Hindi interactions.
-          </p>
         </div>
       </div>
 
