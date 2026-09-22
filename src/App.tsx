@@ -15,6 +15,7 @@ import { PatientWellness } from './components/patient/PatientWellness';
 import { PatientMemories } from './components/patient/PatientMemories';
 import { PatientEmergency } from './components/patient/PatientEmergency';
 import { MascotChatScreen } from './components/patient/MascotChatScreen';
+import { PatientHelpScreen } from './components/patient/PatientHelpScreen';
 
 // Patient Games
 import { GameHub } from './components/patient/games/GameHub';
@@ -88,6 +89,7 @@ const AppContent: React.FC = () => {
       case 'memories': return <PatientMemories />;
       case 'emergency': return <PatientEmergency />;
       case 'mascot_chat': return <MascotChatScreen />;
+      case 'help': return <PatientHelpScreen />;
       case 'games': return <GameHub />;
       case 'game_sequence': return <SequenceRecallGame />;
       case 'game_rhythm': return <RhythmTappingGame />;

@@ -23,7 +23,8 @@ export type PatientScreen =
   | 'wellness'
   | 'memories'
   | 'emergency'
-  | 'mascot_chat';
+  | 'mascot_chat'
+  | 'help';
 
 export type CaregiverRole = 'doctor' | 'nurse' | 'family';
 

@@ -119,10 +119,8 @@ export const PatientHome: React.FC = () => {
   const nextReminder = reminders.find(r => r.status === 'upcoming') || reminders[1];
 
   const handleHelpMe = () => {
-    audio.playTempleBell();
-    const helpFn = APP_VOICE_RESPONSES.emergencyHelp[language] || APP_VOICE_RESPONSES.emergencyHelp.en;
-    const helpPrompt = helpFn(callingName);
-    speakMascot(helpPrompt, 'help');
+    audio.playGentleChime();
+    setPatientScreen('help');
   };
 
   const handleCompleteNext = (e: React.MouseEvent) => {
