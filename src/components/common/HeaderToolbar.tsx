@@ -58,7 +58,7 @@ export const HeaderToolbar: React.FC = () => {
           <button
             onClick={() => handleRoleChange('patient')}
             className={`px-3 py-1 rounded transition-all text-xs font-bold flex items-center gap-1.5 ${
-              role === 'patient' ? 'bg-sangpa-500 text-white shadow-sm' : 'text-sangpa-300 hover:text-white'
+              (role === 'patient' || role === 'patient_auth') ? 'bg-sangpa-500 text-white shadow-sm' : 'text-sangpa-300 hover:text-white'
             }`}
           >
             <HeartHandshake className="w-3.5 h-3.5" />

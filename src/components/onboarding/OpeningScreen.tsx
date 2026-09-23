@@ -98,21 +98,8 @@ export const OpeningScreen: React.FC = () => {
 
   const handleSelectPatient = () => {
     audio.stopSpeaking();
-    audio.playSuccessJingle();
-    setRole('patient');
-    setPatientScreen('home');
-    const greetingMsg = language === 'hi'
-      ? `नमस्ते ${callingName}! सांगपा में आपका स्वागत है।`
-      : language === 'as'
-      ? `নমস্কাৰ ${callingName}! চাংপালৈ স্বাগতম।`
-      : language === 'bn'
-      ? `নমস্কার ${callingName}! সাংপাতে স্বাগতম।`
-      : language === 'mni'
-      ? `খুরুমজরি ${callingName}! সাংপাদা তরাম্না ওকচরি।`
-      : language === 'nag'
-      ? `Namaste ${callingName}! SANGPA te swagat asey.`
-      : `Namaste ${callingName}! Welcome home to SANGPA.`;
-    speakMascot(greetingMsg, 'speaking', language);
+    audio.playCuteChime();
+    setRole('patient_auth');
   };
 
   const handleSelectCaregiver = () => {

@@ -2,7 +2,7 @@ export type LanguageCode = 'en' | 'hi' | 'as' | 'bn' | 'mni' | 'nag' | 'es';
 
 export type TextScale = 'normal' | 'large' | 'xlarge';
 
-export type UserRole = 'opening' | 'patient' | 'caregiver' | 'healthcare' | 'caregiver_login';
+export type UserRole = 'opening' | 'patient' | 'caregiver' | 'healthcare' | 'caregiver_login' | 'patient_auth';
 
 export type DeviceViewport = 'mobile' | 'tablet' | 'desktop';
 
@@ -228,5 +228,17 @@ export interface CareTeamMember {
   phone: string;
   email: string;
   avatar?: string;
+}
+
+export interface PatientAccount {
+  id: string;
+  fullName: string;
+  preferredName: string;
+  age: number | string;
+  identifier: string; // phone or email
+  language: LanguageCode;
+  password?: string;
+  caregiverCode?: string;
+  createdAt: string;
 }
 

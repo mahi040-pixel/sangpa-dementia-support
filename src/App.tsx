@@ -16,6 +16,7 @@ import { PatientMemories } from './components/patient/PatientMemories';
 import { PatientEmergency } from './components/patient/PatientEmergency';
 import { MascotChatScreen } from './components/patient/MascotChatScreen';
 import { PatientHelpScreen } from './components/patient/PatientHelpScreen';
+import { PatientAuthScreen } from './components/patient/PatientAuthScreen';
 
 // Patient Games
 import { GameHub } from './components/patient/games/GameHub';
@@ -130,6 +131,7 @@ const AppContent: React.FC = () => {
       {/* Main Experience Viewport */}
       <DeviceFrame>
         {role === 'opening' && <OpeningScreen />}
+        {role === 'patient_auth' && <PatientAuthScreen />}
         {role === 'caregiver_login' && <CaregiverLoginScreen />}
 
         {role === 'patient' && (
