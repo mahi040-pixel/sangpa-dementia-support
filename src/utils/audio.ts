@@ -534,7 +534,7 @@ class AudioManager {
   }
 
   // Plays pre-rendered or dynamic high-fidelity audio asset
-  public playAudioAsset(url: string, onEnd?: () => void): Promise<boolean> {
+  private playAudioAsset(url: string, onEnd?: () => void): Promise<void> {
     this.stopSpeaking();
     return new Promise((resolve) => {
       const el = new Audio(url);
@@ -542,23 +542,18 @@ class AudioManager {
       el.onended = () => {
         this.activeAudio = null;
         if (onEnd) onEnd();
-        resolve(true);
+        resolve();
       };
       el.onerror = () => {
         this.activeAudio = null;
         if (onEnd) onEnd();
-        resolve(false);
+        resolve();
       };
-      el.play()
-        .then(() => {
-          // Playing successfully
-        })
-        .catch((err) => {
-          this.activeAudio = null;
-          console.warn('[SANGPA Audio Play Notice]', err);
-          if (onEnd) onEnd();
-          resolve(false);
-        });
+      el.play().catch(() => {
+        this.activeAudio = null;
+        if (onEnd) onEnd();
+        resolve();
+      });
     });
   }
 
@@ -728,12 +723,12 @@ class AudioManager {
   }
 
   // Play the authentic bundled sample of Suhana J from ElevenLabs (Voice 5f1FjpWl2X8UqTlgo9Ov)
-  playSuhanaAuthenticSample(onEnd?: () => void): Promise<boolean | void> {
+  playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
     return this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
   }
 
   // Play authentic Hindi sample of Sangpa (Voice 5f1FjpWl2X8UqTlgo9Ov persona)
-  playHindiAuthenticSample(onEnd?: () => void): Promise<boolean | void> {
+  playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
     return this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
   }
 
