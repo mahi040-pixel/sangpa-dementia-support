@@ -455,6 +455,23 @@ class AudioManager {
   private getMatchingAudioAsset(text: string, langCode: LanguageCode): string | null {
     const t = text.toLowerCase().trim();
 
+    // 0. Direct match for opening welcome instructions across all 6 supported languages
+    if (
+      t.includes('welcome to sangpa') ||
+      (t.includes('green button') && (t.includes('caregiver button') || t.includes('white button') || t.includes('swagat asey'))) ||
+      (t.includes('हरे बटन') && (t.includes('सफेद बटन') || t.includes('प्यारा स्वागत'))) ||
+      (t.includes('সেউজীয়া বুটাম') || (t.includes('বুটাম') && (t.includes('নিৰ্দেশ') || t.includes('বগা বুটাম')))) ||
+      (t.includes('সবুজ বোতাম') || (t.includes('বোতাম') && (t.includes('নির্দেশনা') || t.includes('সাদা বোতাম') || t.includes('স্বাগতম') || t.includes('ভালোবাসা')))) ||
+      (t.includes('বটনদু') && (t.includes('অশেংবা') || t.includes('পাউতাক') || t.includes('তরাম্না') || t.includes('অঙৌবা বটনদু')))
+    ) {
+      if (langCode === 'hi' || /[\u0900-\u097F]/.test(text)) return '/assets/voice_hi_opening_instructions.mp3';
+      if (langCode === 'as') return '/assets/voice_as_opening_instructions.mp3';
+      if (langCode === 'bn') return '/assets/voice_bn_opening_instructions.mp3';
+      if (langCode === 'mni') return '/assets/voice_mni_opening_instructions.mp3';
+      if (langCode === 'nag') return '/assets/voice_nag_opening_instructions.mp3';
+      return '/assets/voice_en_opening_instructions.mp3';
+    }
+
     // 1. Exact English Audio Matches
     if (langCode === 'en' || t.includes('ready in english') || t.includes('welcome home to sangpa')) {
       if (t === 'ready in english' || t.includes('ready in english') || t.includes('sangpa is ready in english')) {
@@ -499,7 +516,7 @@ class AudioManager {
       if (t.includes('বাংলায় প্রস্তুত') || t === 'প্রস্তুত') {
         return '/assets/voice_bn_ready.mp3';
       }
-      if (t.includes('সবুজ বোতাম') && t.includes('নির্দেশনা')) {
+      if (t.includes('সবুজ বোতাম') || (t.includes('বোতাম') && (t.includes('নির্দেশনা') || t.includes('স্বাগতম') || t.includes('সাদা বোতাম')))) {
         return '/assets/voice_bn_opening_instructions.mp3';
       }
       return null;
@@ -510,7 +527,7 @@ class AudioManager {
       if (t.includes('nagamese te ready') || t.includes('ready asey')) {
         return '/assets/voice_nag_ready.mp3';
       }
-      if (t.includes('green button') && t.includes('swagat asey')) {
+      if (t.includes('green button') && (t.includes('swagat asey') || t.includes('caregiver'))) {
         return '/assets/voice_nag_opening_instructions.mp3';
       }
       return null;
@@ -521,7 +538,7 @@ class AudioManager {
       if (t.includes('हिन्दी में तैयार') || t === 'तैयार है' || t.includes('भाषा चुनी')) {
         return '/assets/voice_hi_greeting.mp3';
       }
-      if (t.includes('हरे बटन') && (t.includes('सफेद बटन') || t.includes('निर्देश'))) {
+      if (t.includes('हरे बटन') && (t.includes('सफेद बटन') || t.includes('निर्देश') || t.includes('स्वागत'))) {
         return '/assets/voice_hi_opening_instructions.mp3';
       }
       if (t.includes('कमला दादी, आपका स्वागत है') || (t.includes('स्वागत है') && t.includes('कमला दादी'))) {
@@ -534,7 +551,7 @@ class AudioManager {
   }
 
   // Plays pre-rendered or dynamic high-fidelity audio asset
-  private playAudioAsset(url: string, onEnd?: () => void): Promise<void> {
+  playAudioAsset(url: string, onEnd?: () => void): Promise<boolean> {
     this.stopSpeaking();
     return new Promise((resolve) => {
       const el = new Audio(url);
@@ -542,17 +559,20 @@ class AudioManager {
       el.onended = () => {
         this.activeAudio = null;
         if (onEnd) onEnd();
-        resolve();
+        resolve(true);
       };
       el.onerror = () => {
         this.activeAudio = null;
         if (onEnd) onEnd();
-        resolve();
+        resolve(false);
       };
-      el.play().catch(() => {
+      el.play().then(() => {
+        resolve(true);
+      }).catch((err) => {
+        console.warn('[Audio Autoplay Blocked or Failed]', err);
         this.activeAudio = null;
         if (onEnd) onEnd();
-        resolve();
+        resolve(false);
       });
     });
   }
@@ -723,13 +743,13 @@ class AudioManager {
   }
 
   // Play the authentic bundled sample of Suhana J from ElevenLabs (Voice 5f1FjpWl2X8UqTlgo9Ov)
-  playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
-    return this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
+  async playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
+    await this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
   }
 
   // Play authentic Hindi sample of Sangpa (Voice 5f1FjpWl2X8UqTlgo9Ov persona)
-  playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
-    return this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
+  async playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
+    await this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
   }
 
   // Test Sangpa's voice in any of the app's supported languages

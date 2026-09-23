@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Volume2, 
@@ -40,6 +40,13 @@ export const OpeningScreen: React.FC = () => {
     { code: 'nag', label: 'নাগামিজ', subLabel: 'Nagamese' },
   ];
 
+  // Helper to speak the official translated welcome message on the opening screen
+  const playWelcomeMessage = (targetLang: LanguageCode) => {
+    const currentTrans = translations[targetLang] || translations.en;
+    const textToSpeak = currentTrans.openingInstruction || currentTrans.tagline;
+    speakMascot(textToSpeak, 'speaking', targetLang);
+  };
+
   const handlePlayInstructions = () => {
     if (isSpeaking) {
       audio.stopSpeaking();
@@ -47,27 +54,47 @@ export const OpeningScreen: React.FC = () => {
       return;
     }
 
-    const currentTrans = translations[language] || translations.en;
-    const textToSpeak = currentTrans.openingInstruction || currentTrans.tagline;
-
-    speakMascot(textToSpeak, 'speaking', language);
+    playWelcomeMessage(language);
   };
 
   const handleLanguageChange = (newLang: LanguageCode) => {
     setLanguage(newLang);
-    
-    // Announce the selected language briefly and sweetly in the child voice
-    const langGreetings: Record<LanguageCode, string> = {
-      hi: 'नमस्ते! सांगपा हिन्दी में तैयार है।',
-      as: 'নমস্কাৰ! চাংপা অসমীয়াত সাজু।',
-      bn: 'নমস্কার! সাংপা বাংলায় প্রস্তুত।',
-      en: 'Namaste! Sangpa is ready in English.',
-      mni: 'খুরুমজরি! সাংপা মৈতৈলোন্দা শেম-শারে।',
-      nag: 'Namaste! Sangpa Nagamese te ready asey.',
-      es: '¡Hola! Sangpa está lista en español.'
-    };
-    speakMascot(langGreetings[newLang] || langGreetings.hi, 'speaking', newLang);
+    // As soon as the user selects a language, speak the welcome message translated to that language
+    playWelcomeMessage(newLang);
   };
+
+  // Automatically start speaking the welcome message as soon as the website is opened
+  useEffect(() => {
+    let unmounted = false;
+
+    // Immediately trigger automatic welcome speech
+    playWelcomeMessage(language);
+
+    // Safeguard for browsers with strict unmuted autoplay restrictions:
+    // If the browser blocked initial autoplay before user interaction,
+    // trigger playback on the very first touch/click anywhere on the screen.
+    const handleFirstGesture = () => {
+      if (unmounted) return;
+      if (mascotState !== 'speaking') {
+        playWelcomeMessage(language);
+      }
+      cleanup();
+    };
+
+    const cleanup = () => {
+      window.removeEventListener('pointerdown', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
+
+    window.addEventListener('pointerdown', handleFirstGesture, { once: true });
+    window.addEventListener('keydown', handleFirstGesture, { once: true });
+
+    return () => {
+      unmounted = true;
+      cleanup();
+      audio.stopSpeaking();
+    };
+  }, []);
 
   const handleSelectPatient = () => {
     audio.stopSpeaking();
@@ -173,7 +200,7 @@ export const OpeningScreen: React.FC = () => {
         {isSpeaking && (
           <div className="max-w-md w-full mb-3 p-3.5 bg-white border-2 border-sangpa-400 rounded-2xl shadow-sm text-center animate-fadeIn">
             <p className="text-xs font-bold text-sangpa-600 uppercase tracking-wider mb-0.5">
-              Sangpa is speaking:
+              Sangpa is speaking ({availableLanguages.find(l => l.code === language)?.label || 'Voice'}):
             </p>
             <p className="text-xs sm:text-sm font-medium text-sangpa-900 leading-snug">
               "{translations[language]?.openingInstruction}"
