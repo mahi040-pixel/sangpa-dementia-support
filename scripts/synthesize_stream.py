@@ -11,7 +11,7 @@ import urllib.error
 ELEVENLABS_VOICE_ID = (
     os.environ.get("ELEVENLABS_VOICE_ID")
     or os.environ.get("VITE_ELEVENLABS_VOICE_ID")
-    or "5f1FjpWl2X8UqTlgo9Ov"
+    or ""
 )
 ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
 

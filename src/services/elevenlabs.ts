@@ -1,25 +1,13 @@
 import { LanguageCode } from '../types';
 
-// ElevenLabs Voice Configuration for Sangpa (Voice ID: 5f1FjpWl2X8UqTlgo9Ov)
-export const DEFAULT_VOICE_ID = '5f1FjpWl2X8UqTlgo9Ov';
-export const ELEVENLABS_VOICE_ID = (
-  (typeof process !== 'undefined' && (
-    process.env?.ELEVENLABS_VOICE_ID ||
-    process.env?.VITE_ELEVENLABS_VOICE_ID ||
-    process.env?.NEXT_PUBLIC_ELEVENLABS_VOICE_ID ||
-    process.env?.ELEVEN_VOICE_ID ||
-    process.env?.VOICE_ID
-  )) ||
-  (typeof import.meta !== 'undefined' && (
-    (import.meta as any).env?.VITE_ELEVENLABS_VOICE_ID ||
-    (import.meta as any).env?.VITE_VOICE_ID ||
-    (import.meta as any).env?.VITE_ELEVEN_VOICE_ID ||
-    (import.meta as any).env?.ELEVENLABS_VOICE_ID
-  )) ||
-  DEFAULT_VOICE_ID
-).trim();
-export const ELEVENLABS_VOICE_NAME = 'Suhana J – Very Young & Joyful Narrator';
+// Custom ElevenLabs Voice Configuration for Sangpa
+export const ELEVENLABS_VOICE_NAME = 'Sangpa Voice';
 export const ELEVENLABS_MODEL_ID = 'eleven_multilingual_v2';
+export const ELEVENLABS_VOICE_ID = (
+  (typeof process !== 'undefined' && process.env?.ELEVENLABS_VOICE_ID) ||
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ELEVENLABS_VOICE_ID) ||
+  ''
+).trim();
 
 export class ElevenLabsPaymentRequiredError extends Error {
   status = 402;
@@ -60,7 +48,7 @@ class ElevenLabsService {
     tested: false,
     isValid: true,
     hasVoice: true,
-    message: `Server-side ElevenLabs voice synthesis (Voice ID: ${ELEVENLABS_VOICE_ID}) ready.`
+    message: 'Server-side ElevenLabs voice synthesis ready.'
   };
 
   constructor() {
@@ -128,7 +116,7 @@ class ElevenLabsService {
   hasApiKey(): boolean {
     // True in production and development:
     // The server-side endpoint (/api/tts) holds the ELEVENLABS_API_KEY securely,
-    // protecting it from browser exposure while powering Voice ID (5f1FjpWl2X8UqTlgo9Ov).
+    // protecting it from browser exposure while powering the custom ELEVENLABS_VOICE_ID.
     return true;
   }
 
@@ -166,11 +154,12 @@ class ElevenLabsService {
           headers: { 'xi-api-key': this.apiKey }
         });
 
+        const activeVoiceId = this.getVoiceId();
         let hasVoice = false;
         if (voicesRes.ok) {
           const voicesData = await voicesRes.json();
           const voiceList = voicesData?.voices || [];
-          hasVoice = voiceList.some((v: any) => v.voice_id === ELEVENLABS_VOICE_ID);
+          hasVoice = voiceList.some((v: any) => v.voice_id === activeVoiceId);
         }
 
         this.lastStatus = {
@@ -180,8 +169,8 @@ class ElevenLabsService {
           characterCount,
           characterLimit,
           message: hasVoice 
-            ? `Connected! Voice ID ${ELEVENLABS_VOICE_ID} is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
-            : `API Key valid (${(characterLimit - characterCount).toLocaleString()} chars), but Voice ${ELEVENLABS_VOICE_ID} is not yet in VoiceLab.`
+            ? `Connected! Voice ID ${activeVoiceId} is active in your VoiceLab (${(characterLimit - characterCount).toLocaleString()} characters remaining).`
+            : `API Key valid (${(characterLimit - characterCount).toLocaleString()} chars), but Voice ${activeVoiceId} is not yet in VoiceLab.`
         };
         return this.lastStatus;
       }

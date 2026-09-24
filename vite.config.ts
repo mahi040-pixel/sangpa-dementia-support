@@ -13,7 +13,7 @@ const ttsPlugin = () => ({
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({
           configured: hasKey,
-          voiceId: process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || '5f1FjpWl2X8UqTlgo9Ov',
+          voiceId: process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || '',
           message: 'Local Vite dev TTS endpoint active'
         }));
         return;
@@ -148,7 +148,7 @@ export default defineConfig({
   plugins: [react(), ttsPlugin()],
   define: {
     'process.env.ELEVENLABS_VOICE_ID': JSON.stringify(
-      process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || '5f1FjpWl2X8UqTlgo9Ov'
+      process.env.ELEVENLABS_VOICE_ID || process.env.VITE_ELEVENLABS_VOICE_ID || ''
     )
   },
   server: {

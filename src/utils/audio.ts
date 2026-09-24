@@ -580,7 +580,7 @@ class AudioManager {
       return;
     }
 
-    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (Strictly Voice ID 5f1FjpWl2X8UqTlgo9Ov)
+    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts using ELEVENLABS_VOICE_ID
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000);
@@ -590,8 +590,7 @@ class AudioManager {
         body: JSON.stringify({ 
           text, 
           lang: langCode,
-          voiceId: elevenLabsService.getVoiceId(),
-          apiKey: elevenLabsService.getApiKey() || undefined
+          voiceId: elevenLabsService.getVoiceId()
         }),
         signal: controller.signal
       });
@@ -610,7 +609,7 @@ class AudioManager {
       console.warn('[TTS API Endpoint Notice]', err);
     }
 
-    // 4. Try Direct ElevenLabs Multilingual v2 with Voice ID 5f1FjpWl2X8UqTlgo9Ov if direct key is present
+    // 4. Try Direct ElevenLabs Multilingual v2 if direct key is present
     const clientElevenKey = elevenLabsService.getApiKey();
     if (clientElevenKey && clientElevenKey.length > 5) {
       try {
@@ -629,7 +628,7 @@ class AudioManager {
       }
     }
 
-    // 5. Emergency offline browser acoustic child companion speech (matches Suhana J 5f1FjpWl2X8UqTlgo9Ov persona)
+    // 5. Emergency offline browser acoustic child companion speech fallback
     this.speakFallback(text, lang, onEnd);
   }
 
@@ -705,12 +704,12 @@ class AudioManager {
     }
   }
 
-  // Play the authentic bundled sample of Suhana J from ElevenLabs (Voice 5f1FjpWl2X8UqTlgo9Ov)
+  // Play bundled sample audio
   async playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
     await this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
   }
 
-  // Play authentic Hindi sample of Sangpa (Voice 5f1FjpWl2X8UqTlgo9Ov persona)
+  // Play bundled sample greeting
   async playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
     await this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
   }
