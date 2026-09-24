@@ -49,7 +49,7 @@ const ttsPlugin = () => ({
               .replace(/\s+/g, ' ')
               .trim();
 
-            const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${effectiveVoiceId}?output_format=mp3_44100_128`, {
+            const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${effectiveVoiceId}?output_format=mp3_44100_128&optimize_streaming_latency=3`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ const ttsPlugin = () => ({
               body: JSON.stringify({
                 text: cleanText,
                 model_id: 'eleven_multilingual_v2',
-                voice_settings: { stability: 0.50, similarity_boost: 0.75 }
+                voice_settings: { stability: 0.50, similarity_boost: 0.75, use_speaker_boost: true }
               })
             });
 

@@ -31,13 +31,7 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
 
   // Parse Body safely
   let body = req.body;
-  if (Buffer.isBuffer(body)) {
-    try {
-      body = JSON.parse(body.toString('utf-8'));
-    } catch {
-      body = {};
-    }
-  } else if (typeof body === 'string') {
+  if (typeof body === 'string') {
     try {
       body = JSON.parse(body);
     } catch {
@@ -164,7 +158,7 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
 
   // 4. Server-side ElevenLabs synthesis using ELEVENLABS_VOICE_ID
   try {
-    const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}?output_format=mp3_44100_128`;
+    const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}?output_format=mp3_44100_128&optimize_streaming_latency=3`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout for cold start & regional languages
 
@@ -180,7 +174,8 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
         model_id: ELEVENLABS_MODEL_ID,
         voice_settings: {
           stability: 0.50,
-          similarity_boost: 0.75
+          similarity_boost: 0.75,
+          use_speaker_boost: true
         }
       }),
       signal: controller.signal
@@ -216,14 +211,9 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
 
       res.statusCode = 200;
       res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Content-Length', audioBuffer.length.toString());
+      res.setHeader('Content-Length', audioBuffer.length);
       res.setHeader('Cache-Control', 'public, max-age=86400');
-
-      if (typeof res.send === 'function') {
-        res.send(audioBuffer);
-      } else {
-        res.end(audioBuffer);
-      }
+      res.end(audioBuffer);
       return;
     }
 
