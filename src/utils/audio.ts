@@ -55,18 +55,9 @@ const detectScriptLanguage = (text: string, fallbackLang: LanguageCode): Languag
 
 class AudioManager {
   private ctx: AudioContext | null = null;
-  private cachedVoices: SpeechSynthesisVoice[] = [];
   private activeAudio: HTMLAudioElement | null = null;
-  private currentUtterance: SpeechSynthesisUtterance | null = null;
 
-  constructor() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      this.cachedVoices = window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        this.cachedVoices = window.speechSynthesis.getVoices();
-      };
-    }
-  }
+  constructor() {}
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -278,58 +269,6 @@ class AudioManager {
     osc.stop(now + 0.35);
   }
 
-  getVoices(): SpeechSynthesisVoice[] {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return [];
-    const live = window.speechSynthesis.getVoices();
-    if (live && live.length > 0) {
-      this.cachedVoices = live;
-      return live;
-    }
-    return this.cachedVoices || [];
-  }
-
-  // Specifically check if a voice name is female
-  private isExplicitlyFemale(name: string): boolean {
-    const n = name.toLowerCase();
-    return (
-      n.includes('zira') ||
-      n.includes('heera') ||
-      n.includes('swara') ||
-      n.includes('neerja') ||
-      n.includes('jenny') ||
-      n.includes('aria') ||
-      n.includes('samantha') ||
-      n.includes('victoria') ||
-      n.includes('karen') ||
-      n.includes('kalpana') ||
-      n.includes('sangeeta') ||
-      n.includes('veena') ||
-      n.includes('tanisha') ||
-      n.includes('ananya') ||
-      n.includes('female') ||
-      n.includes('girl') ||
-      n.includes('woman') ||
-      n.includes('hazel') ||
-      n.includes('susan') ||
-      n.includes('catherine') ||
-      n.includes('linda') ||
-      n.includes('mary') ||
-      n.includes('helena') ||
-      n.includes('joana') ||
-      n.includes('laura') ||
-      n.includes('shilpa') ||
-      n.includes('sunita') ||
-      n.includes('priya') ||
-      n.includes('monica') ||
-      n.includes('paulina') ||
-      n.includes('sabina') ||
-      n.includes('lucia') ||
-      n.includes('elena') ||
-      n.includes('conchita') ||
-      n.includes('lupe')
-    );
-  }
-
   private isMuted: boolean = false;
 
   setMuted(muted: boolean) {
@@ -349,106 +288,6 @@ class AudioManager {
 
   getMuted(): boolean {
     return this.isMuted;
-  }
-
-  // Strictly identify adult male voices to exclude
-  private isMaleVoice(name: string): boolean {
-    // If it is known to be female, NEVER classify as male
-    if (this.isExplicitlyFemale(name)) {
-      return false;
-    }
-
-    const n = name.toLowerCase();
-    return (
-      n.includes('david') ||
-      n.includes('mark') ||
-      n.includes('george') ||
-      n.includes('ravi') ||
-      n.includes('guy') ||
-      n.includes('richard') ||
-      n.includes('brian') ||
-      n.includes('sean') ||
-      n.includes('james') ||
-      n.includes('stefan') ||
-      n.includes('paul') ||
-      n.includes('mike') ||
-      n.includes('michael') ||
-      n.includes('alex') ||
-      n.includes('daniel') ||
-      n.includes('oliver') ||
-      n.includes('prabhat') ||
-      n.includes('madhav') ||
-      n.includes('hemant') ||
-      /\bmale\b/i.test(n) ||
-      /\bman\b/i.test(n)
-    );
-  }
-
-  // Specifically select cute girl/female child-like voices and strictly reject any male voice
-  selectCuteGirlVoice(lang: string): SpeechSynthesisVoice | undefined {
-    const voices = this.getVoices();
-    if (!voices || voices.length === 0) return undefined;
-
-    // Filter out all male voices
-    const nonMaleVoices = voices.filter(v => !this.isMaleVoice(v.name));
-
-    const isPreferredFemale = (name: string) => this.isExplicitlyFemale(name) || name.toLowerCase().includes('natural');
-
-    const langPrefix = lang.slice(0, 2).toLowerCase();
-    const isHindiTarget = langPrefix === 'hi';
-
-    // If target language is NOT Hindi, strictly exclude Hindi voices (e.g. Swara, Kalpana)
-    // so they are never used as fallbacks for Assamese, Bengali, Manipuri, Nagamese, etc.
-    const candidateVoices = isHindiTarget
-      ? nonMaleVoices
-      : nonMaleVoices.filter(v => 
-          !v.lang.toLowerCase().startsWith('hi') && 
-          !v.name.toLowerCase().includes('swara') && 
-          !v.name.toLowerCase().includes('kalpana')
-        );
-
-    // 1. Preferred female voice in matching language (e.g. Heera for en-IN, Swara for hi-IN)
-    let match = candidateVoices.find(v => 
-      v.lang.toLowerCase().startsWith(langPrefix) && isPreferredFemale(v.name)
-    );
-    if (match) return match;
-
-    // 2. Eastern Nagari Script voices for Assamese (as) and Manipuri (mni)
-    if (langPrefix === 'as' || lang === 'as' || lang === 'mni' || langPrefix === 'mn' || langPrefix === 'bn') {
-      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('bn') && isPreferredFemale(v.name));
-      if (match) return match;
-      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('bn'));
-      if (match) return match;
-    }
-
-    // 3. English preferred female voice (Heera, Neerja, Zira, Jenny, Aria, Samantha)
-    if (langPrefix === 'en' || lang === 'nag' || lang === 'as' || lang === 'mni' || langPrefix === 'bn') {
-      match = candidateVoices.find(v => v.name.toLowerCase().includes('heera'));
-      if (match) return match;
-      match = candidateVoices.find(v => v.name.toLowerCase().includes('neerja'));
-      if (match) return match;
-      match = candidateVoices.find(v => v.name.toLowerCase().includes('zira'));
-      if (match) return match;
-      match = candidateVoices.find(v => v.name.toLowerCase().includes('jenny'));
-      if (match) return match;
-      match = candidateVoices.find(v => v.name.toLowerCase().includes('aria'));
-      if (match) return match;
-      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('en') && isPreferredFemale(v.name));
-      if (match) return match;
-    }
-
-    // 4. Any non-male voice matching the language prefix
-    match = candidateVoices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
-    if (match) return match;
-
-    // 5. Any preferred female voice in candidateVoices (safe dialects only, never Hindi for non-Hindi)
-    match = candidateVoices.find(v => isPreferredFemale(v.name));
-    if (match) return match;
-
-    // 6. Any candidate non-male voice
-    if (candidateVoices.length > 0) return candidateVoices[0];
-
-    return undefined;
   }
 
   // In-memory cache for dynamic speech audio blobs
@@ -523,13 +362,19 @@ class AudioManager {
           this.dynamicTtsCache.set(cacheKey, audioUrl);
           await this.playAudioAsset(audioUrl, onEnd);
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          console.error('[ElevenLabs TTS Endpoint Failure]:', res.status, errData);
         }
+      } else {
+        const errText = await res.text().catch(() => '');
+        console.error(`[ElevenLabs TTS Server Error HTTP ${res.status}]:`, errText);
       }
     } catch (err) {
-      console.warn('[TTS API Endpoint Notice]', err);
+      console.error('[ElevenLabs TTS Network Error]:', err);
     }
 
-    // 4. Try Direct ElevenLabs Multilingual v2 if direct key is present
+    // 3. Fallback to direct client ElevenLabs if direct key is present in client settings
     const clientElevenKey = elevenLabsService.getApiKey();
     if (clientElevenKey && clientElevenKey.length > 5) {
       try {
@@ -540,88 +385,13 @@ class AudioManager {
           return;
         }
       } catch (err: any) {
-        console.warn('[Direct ElevenLabs Client Notice]', err);
-        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
-          if (onEnd) onEnd();
-          return;
-        }
+        console.error('[Direct ElevenLabs Client Error]:', err);
       }
     }
 
-    // 5. Emergency offline browser acoustic child companion speech fallback
-    this.speakFallback(text, lang, onEnd);
-  }
-
-  private speakFallback(text: string, lang: string, onEnd?: () => void) {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      if (onEnd) setTimeout(onEnd, 1800);
-      return;
-    }
-
-    const doSpeak = () => {
-      try {
-        window.speechSynthesis.cancel(); // Stop prior utterance
-
-        // Clean text: strip markdown characters (*, _, #, `, etc.) so speech doesn't read symbols
-        const cleanText = text
-          .replace(/[*_#`~[\]()<>]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-
-        if (!cleanText) {
-          if (onEnd) onEnd();
-          return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        this.currentUtterance = utterance; // Prevent Chromium garbage collection bug
-
-        // Suhana J voice acoustic configuration:
-        // Pitch: 1.60 matches the youthful, bright, innocent 6-year-old storyteller tone
-        utterance.pitch = 1.60;
-        // Rate: 0.92 ensures calm, gentle, respectful clarity for elderly ears
-        utterance.rate = 0.92;
-        utterance.volume = 1.0;
-        utterance.lang = lang;
-
-        // Strictly select a cute girl/female voice matching the language
-        const selectedVoice = this.selectCuteGirlVoice(lang);
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-        }
-
-        const handleFinish = () => {
-          this.currentUtterance = null;
-          if (onEnd) onEnd();
-        };
-
-        utterance.onend = handleFinish;
-        utterance.onerror = (e) => {
-          if (e.error !== 'canceled' && e.error !== 'interrupted') {
-            console.warn('[SANGPA Voice Synthesis Event]', e.error);
-          }
-          handleFinish();
-        };
-
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.error('[SANGPA Voice Error]', err);
-        if (onEnd) onEnd();
-      }
-    };
-
-    // Ensure voices are loaded before speaking
-    const voices = this.getVoices();
-    if (voices.length === 0 && 'onvoiceschanged' in window.speechSynthesis) {
-      const onVoices = () => {
-        window.speechSynthesis.onvoiceschanged = null;
-        doSpeak();
-      };
-      window.speechSynthesis.onvoiceschanged = onVoices;
-      setTimeout(doSpeak, 200);
-    } else {
-      doSpeak();
-    }
+    // Browser speechSynthesis is permanently disabled per strict ElevenLabs voice policy.
+    // If synthesis failed, safely notify callback without playing robotic fallback audio.
+    if (onEnd) onEnd();
   }
 
   // Audition English voice sample via ElevenLabs
@@ -651,9 +421,6 @@ class AudioManager {
       this.activeAudio.pause();
       this.activeAudio.currentTime = 0;
       this.activeAudio = null;
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
     }
   }
 }
