@@ -1,10 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 
-// Sangpa Mascot Voice Configuration
-const DEFAULT_ELEVENLABS_VOICE_ID = '5f1FjpWl2X8UqTlgo9Ov';
-const ELEVENLABS_MODEL_ID = 'eleven_multilingual_v2';
-const OPENAI_TTS_VOICE = 'nova'; // Warm, gentle, cheerful female companion voice (fallback)
-const OPENAI_TTS_MODEL = 'tts-1';
+// Sangpa Mascot Voice Configuration: Suhana J (Voice ID: 5f1FjpWl2X8UqTlgo9Ov)
+export const SANGPA_MASCOT_VOICE_ID = '5f1FjpWl2X8UqTlgo9Ov';
+export const ELEVENLABS_MODEL_ID = 'eleven_multilingual_v2';
 
 interface RequestWithBody extends IncomingMessage {
   body?: any;
@@ -56,64 +54,58 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
   }
 
   const clientApiKey = body?.apiKey;
-  const clientOpenAiKey = body?.openAiApiKey;
 
-  // Resolve ElevenLabs API Key
+  // Resolve ElevenLabs API Key across all potential environment variable naming conventions
   const elevenLabsApiKey = (
     process.env.ELEVENLABS_API_KEY ||
+    process.env.ELEVEN_LABS_API_KEY ||
     process.env.VITE_ELEVENLABS_API_KEY ||
+    process.env.VITE_ELEVEN_LABS_API_KEY ||
     process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY ||
+    process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY ||
+    process.env.ELEVENLABS_KEY ||
+    process.env.ELEVEN_KEY ||
     process.env.ELEVEN_API_KEY ||
     process.env.XI_API_KEY ||
+    process.env.VITE_XI_API_KEY ||
     (typeof clientApiKey === 'string' && !clientApiKey.startsWith('sk-') ? clientApiKey : '') ||
     ''
-  ).trim();
+  ).trim().replace(/^["']|["']$/g, '');
 
-  // Resolve ElevenLabs Voice ID from environment variables or client payload
+  // Resolve Sangpa Mascot Voice ID (strictly enforcing 5f1FjpWl2X8UqTlgo9Ov everywhere)
   const targetVoiceId = (
     process.env.ELEVENLABS_VOICE_ID ||
+    process.env.ELEVEN_LABS_VOICE_ID ||
     process.env.VITE_ELEVENLABS_VOICE_ID ||
+    process.env.VITE_ELEVEN_LABS_VOICE_ID ||
     process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID ||
+    process.env.NEXT_PUBLIC_ELEVEN_LABS_VOICE_ID ||
     process.env.ELEVEN_VOICE_ID ||
     process.env.VITE_ELEVEN_VOICE_ID ||
     process.env.XI_VOICE_ID ||
     process.env.VOICE_ID ||
     process.env.VITE_VOICE_ID ||
+    process.env.SANGPA_VOICE_ID ||
+    process.env.MASCOT_VOICE_ID ||
     body?.voiceId ||
-    DEFAULT_ELEVENLABS_VOICE_ID
-  ).trim();
+    SANGPA_MASCOT_VOICE_ID
+  ).trim().replace(/^["']|["']$/g, '') || SANGPA_MASCOT_VOICE_ID;
 
-  // Resolve OpenAI API Key (from server environment or client payload)
-  const openAiApiKey = (
-    process.env.OPENAI_API_KEY ||
-    process.env.VITE_OPENAI_API_KEY ||
-    process.env.NEXT_PUBLIC_OPENAI_API_KEY ||
-    clientOpenAiKey ||
-    (typeof clientApiKey === 'string' && clientApiKey.startsWith('sk-') ? clientApiKey : '') ||
-    ''
-  ).trim();
-
-  // 2. GET Request: Configuration diagnostic (never exposes secret values)
+  // 2. GET Request: Configuration diagnostic (does NOT leak secret key)
   if (req.method === 'GET') {
     const hasElevenLabs = elevenLabsApiKey.length > 5;
-    const hasOpenAi = openAiApiKey.length > 5;
 
     const result = {
       status: 'ok',
-      configured: hasElevenLabs || hasOpenAi,
-      primaryEngine: hasElevenLabs ? 'elevenlabs' : hasOpenAi ? 'openai' : 'none',
-      elevenLabsConfigured: hasElevenLabs,
-      elevenLabsVoiceId: targetVoiceId,
+      configured: hasElevenLabs,
+      engine: 'elevenlabs',
       voiceId: targetVoiceId,
+      elevenLabsVoiceId: targetVoiceId,
       elevenLabsModel: ELEVENLABS_MODEL_ID,
-      openAiConfigured: hasOpenAi,
-      openAiModel: OPENAI_TTS_MODEL,
-      openAiVoice: OPENAI_TTS_VOICE,
+      elevenLabsConfigured: hasElevenLabs,
       message: hasElevenLabs
-        ? `Server ElevenLabs TTS endpoint is active with Voice ID "${targetVoiceId}" using ${ELEVENLABS_MODEL_ID}.`
-        : hasOpenAi
-        ? `Server OpenAI TTS fallback endpoint is active with voice "${OPENAI_TTS_VOICE}" (model ${OPENAI_TTS_MODEL}).`
-        : 'Neither ELEVENLABS_API_KEY nor OPENAI_API_KEY is configured in Vercel environment variables.'
+        ? `Server ElevenLabs TTS endpoint is active with Sangpa Mascot Voice ID "${targetVoiceId}" using ${ELEVENLABS_MODEL_ID}.`
+        : `Server ELEVENLABS_API_KEY is not configured in Vercel environment variables. Voice ID is locked to "${targetVoiceId}".`
     };
 
     if (res.status && res.json) return res.status(200).json(result);
@@ -142,14 +134,18 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
     return;
   }
 
-  const cleanText = text.trim();
+  // Clean text: strip markdown characters (*, _, #, `, etc.) so speech doesn't read formatting symbols
+  const cleanText = text
+    .replace(/[*_#`~[\]()<>]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  // 1. Primary Engine: ElevenLabs Multilingual v2 with the user's configured Voice ID across all languages
+  // 4. Synthesize speech using ElevenLabs Multilingual v2 with Voice ID 5f1FjpWl2X8UqTlgo9Ov
   if (elevenLabsApiKey && elevenLabsApiKey.length > 5) {
     try {
       const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}?output_format=mp3_44100_128`;
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
+      const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout for cold start & regional languages
 
       const response = await fetch(elevenLabsUrl, {
         method: 'POST',
@@ -162,7 +158,7 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
           text: cleanText,
           model_id: ELEVENLABS_MODEL_ID,
           voice_settings: {
-            stability: 0.55,
+            stability: 0.50,
             similarity_boost: 0.85,
             use_speaker_boost: true
           }
@@ -184,75 +180,11 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
       }
 
       const errText = await response.text();
-      console.warn(`[ElevenLabs TTS Warning] HTTP ${response.status}:`, errText);
+      console.error(`[ElevenLabs TTS Server Error] Voice ID: ${targetVoiceId}, HTTP ${response.status}:`, errText);
 
-      // If OpenAI fallback is NOT configured, return ElevenLabs error directly
-      if (!openAiApiKey || openAiApiKey.length < 5) {
-        const errObj = {
-          error: 'ElevenLabs TTS request failed',
-          status: response.status,
-          details: errText
-        };
-        if (res.status && res.json) return res.status(response.status).json(errObj);
-        res.statusCode = response.status;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(errObj));
-        return;
-      }
-      console.info('[ElevenLabs TTS unavailable or credit exhausted, proceeding to OpenAI TTS fallback]');
-    } catch (err: any) {
-      console.warn('[ElevenLabs TTS Exception, attempting OpenAI fallback if available]:', err?.message);
-      if (!openAiApiKey || openAiApiKey.length < 5) {
-        const errObj = {
-          error: 'ElevenLabs TTS request failed',
-          details: err?.message
-        };
-        if (res.status && res.json) return res.status(500).json(errObj);
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(errObj));
-        return;
-      }
-    }
-  }
-
-  // 2. Secondary Fallback: OpenAI TTS (strictly fallback when ElevenLabs is unconfigured or failed)
-  if (openAiApiKey && openAiApiKey.length > 5) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
-
-      const response = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAiApiKey}`
-        },
-        body: JSON.stringify({
-          model: OPENAI_TTS_MODEL,
-          input: cleanText,
-          voice: OPENAI_TTS_VOICE
-        }),
-        signal: controller.signal
-      });
-      clearTimeout(timeout);
-
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = Buffer.from(arrayBuffer);
-
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Content-Length', audioBuffer.length);
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        res.end(audioBuffer);
-        return;
-      }
-
-      const errText = await response.text();
-      console.error(`[OpenAI TTS Fallback Server Error] HTTP ${response.status}:`, errText);
       const errObj = {
-        error: 'TTS request failed',
+        error: `ElevenLabs speech synthesis failed for Voice ID ${targetVoiceId}`,
+        voiceId: targetVoiceId,
         status: response.status,
         details: errText
       };
@@ -262,9 +194,10 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
       res.end(JSON.stringify(errObj));
       return;
     } catch (err: any) {
-      console.error('[OpenAI TTS Fallback Exception]:', err?.message);
+      console.error('[ElevenLabs TTS Exception]:', err?.message);
       const errObj = {
-        error: 'TTS request failed',
+        error: `ElevenLabs speech synthesis exception for Voice ID ${targetVoiceId}`,
+        voiceId: targetVoiceId,
         details: err?.message
       };
       if (res.status && res.json) return res.status(500).json(errObj);
@@ -275,13 +208,14 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
     }
   }
 
-  // 3. Neither ElevenLabs nor OpenAI API key is configured
+  // 5. ElevenLabs API key is not configured in Vercel environment variables
   const missingKeyErr = {
-    error: 'Text-to-speech failed: No API key found',
-    category: 'MISSING_API_KEY',
-    details: 'Neither ELEVENLABS_API_KEY nor OPENAI_API_KEY is configured in Vercel environment variables.'
+    error: 'ELEVENLABS_API_KEY is not configured in Vercel environment variables',
+    voiceId: targetVoiceId,
+    category: 'MISSING_ELEVENLABS_API_KEY',
+    details: `Sangpa Mascot Voice ID "${targetVoiceId}" requires ElevenLabs speech synthesis. Please add ELEVENLABS_API_KEY to your Vercel Project Settings > Environment Variables.`
   };
-  console.error('[TTS Server Error] Missing ELEVENLABS_API_KEY in Vercel environment variables.');
+  console.error(`[TTS Server Error] Cannot synthesize Voice ID "${targetVoiceId}" without ELEVENLABS_API_KEY in Vercel environment variables.`);
   if (res.status && res.json) return res.status(500).json(missingKeyErr);
   res.statusCode = 500;
   res.setHeader('Content-Type', 'application/json');

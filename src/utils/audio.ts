@@ -1,6 +1,5 @@
 // SANGPA Web Audio API Sound Synthesizer, OpenAI TTS, and Multilingual Audio Asset Engine
 import { elevenLabsService } from '../services/elevenlabs';
-import { getOpenAIApiKey } from '../services/openai';
 import { LanguageCode } from '../types';
 
 const mapLangToCode = (lang: string): LanguageCode => {
@@ -525,81 +524,6 @@ class AudioManager {
       return '/assets/voice_en_opening_instructions.mp3';
     }
 
-    // 1. Exact English Audio Matches
-    if (langCode === 'en' || t.includes('ready in english') || t.includes('welcome home to sangpa')) {
-      if (t === 'ready in english' || t.includes('ready in english') || t.includes('sangpa is ready in english')) {
-        return '/assets/voice_en_ready.mp3';
-      }
-      if (
-        (t.includes('green button') || t.includes('white button')) &&
-        (t.includes('welcome') || t.includes('instruction') || t.includes('caregiver'))
-      ) {
-        return '/assets/voice_en_opening_instructions.mp3';
-      }
-      return null;
-    }
-
-    // 2. Exact Assamese Audio Matches
-    if (langCode === 'as' || /[\u09F0\u09F1]/.test(text) || t.includes('অসমীয়া')) {
-      if (t.includes('অসমীয়াত সাজু') || t === 'সাজু' || t.includes('ভাষা নিৰ্বাচন')) {
-        return '/assets/voice_as_ready.mp3';
-      }
-      if (t.includes('সেউজীয়া বুটাম') || (t.includes('বুটাম') && t.includes('নিৰ্দেশ'))) {
-        return '/assets/voice_as_opening_instructions.mp3';
-      }
-      if (t.includes('চাংপালৈ স্বাগতম') && (t.includes('আইতা') || t.includes('কমলা আইতা'))) {
-        return '/assets/voice_as_patient_welcome.mp3';
-      }
-      return null;
-    }
-
-    // 3. Exact Manipuri Audio Matches
-    if (langCode === 'mni' || t.includes('মৈতৈলোন্দা')) {
-      if (t.includes('মৈতৈলোন্দা শেম-শারে') || t.includes('শেম-শারে')) {
-        return '/assets/voice_mni_ready.mp3';
-      }
-      if (t.includes('বটনদু') && (t.includes('অশেংবা') || t.includes('পাউতাক'))) {
-        return '/assets/voice_mni_opening_instructions.mp3';
-      }
-      return null;
-    }
-
-    // 4. Exact Bengali Audio Matches
-    if (langCode === 'bn') {
-      if (t.includes('বাংলায় প্রস্তুত') || t === 'প্রস্তুত') {
-        return '/assets/voice_bn_ready.mp3';
-      }
-      if (t.includes('সবুজ বোতাম') || (t.includes('বোতাম') && (t.includes('নির্দেশনা') || t.includes('স্বাগতম') || t.includes('সাদা বোতাম')))) {
-        return '/assets/voice_bn_opening_instructions.mp3';
-      }
-      return null;
-    }
-
-    // 5. Exact Nagamese Audio Matches
-    if (langCode === 'nag') {
-      if (t.includes('nagamese te ready') || t.includes('ready asey')) {
-        return '/assets/voice_nag_ready.mp3';
-      }
-      if (t.includes('green button') && (t.includes('swagat asey') || t.includes('caregiver'))) {
-        return '/assets/voice_nag_opening_instructions.mp3';
-      }
-      return null;
-    }
-
-    // 6. Exact Hindi Audio Matches (Devanagari script)
-    if (langCode === 'hi' || (!['as', 'bn', 'mni', 'nag', 'en', 'es'].includes(langCode) && /[\u0901-\u0963\u0966-\u097F]/.test(text))) {
-      if (t.includes('हिन्दी में तैयार') || t === 'तैयार है' || t.includes('भाषा चुनी')) {
-        return '/assets/voice_hi_greeting.mp3';
-      }
-      if (t.includes('हरे बटन') && (t.includes('सफेद बटन') || t.includes('निर्देश') || t.includes('स्वागत'))) {
-        return '/assets/voice_hi_opening_instructions.mp3';
-      }
-      if (t.includes('कमला दादी, आपका स्वागत है') || (t.includes('स्वागत है') && t.includes('कमला दादी'))) {
-        return '/assets/voice_hi_welcome_patient.mp3';
-      }
-      return null;
-    }
-
     return null;
   }
 
@@ -656,11 +580,10 @@ class AudioManager {
       return;
     }
 
-    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (Primary: ElevenLabs with custom Voice ID, Fallback: OpenAI TTS)
+    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (Strictly Voice ID 5f1FjpWl2X8UqTlgo9Ov)
     try {
-      const openAiKey = getOpenAIApiKey();
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
       const res = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -668,8 +591,7 @@ class AudioManager {
           text, 
           lang: langCode,
           voiceId: elevenLabsService.getVoiceId(),
-          apiKey: elevenLabsService.getApiKey() || undefined,
-          openAiApiKey: openAiKey || undefined
+          apiKey: elevenLabsService.getApiKey() || undefined
         }),
         signal: controller.signal
       });
@@ -688,8 +610,8 @@ class AudioManager {
       console.warn('[TTS API Endpoint Notice]', err);
     }
 
-    // 4. Try Direct ElevenLabs Multilingual v2 with configured Voice ID if key is present
-    const clientElevenKey = elevenLabsService.getApiKey() || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ELEVENLABS_API_KEY);
+    // 4. Try Direct ElevenLabs Multilingual v2 with Voice ID 5f1FjpWl2X8UqTlgo9Ov if direct key is present
+    const clientElevenKey = elevenLabsService.getApiKey();
     if (clientElevenKey && clientElevenKey.length > 5) {
       try {
         const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
@@ -707,42 +629,7 @@ class AudioManager {
       }
     }
 
-    // 5. Direct Client-side OpenAI TTS fallback ONLY if ElevenLabs failed or is unavailable
-    const clientOpenAiKey = getOpenAIApiKey();
-    if (clientOpenAiKey && clientOpenAiKey.length > 10) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 18000);
-        const oaiRes = await fetch('https://api.openai.com/v1/audio/speech', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${clientOpenAiKey}`
-          },
-          body: JSON.stringify({
-            model: 'tts-1',
-            input: text.trim(),
-            voice: 'nova'
-          }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (oaiRes.ok) {
-          const blob = await oaiRes.blob();
-          if (blob.size > 200) {
-            const audioUrl = URL.createObjectURL(blob);
-            this.dynamicTtsCache.set(cacheKey, audioUrl);
-            await this.playAudioAsset(audioUrl, onEnd);
-            return;
-          }
-        }
-      } catch (clientTtsErr) {
-        console.warn('[OpenAI Direct TTS Client Notice]', clientTtsErr);
-      }
-    }
-
-    // 6. Emergency offline browser acoustic child companion speech
+    // 5. Emergency offline browser acoustic child companion speech (matches Suhana J 5f1FjpWl2X8UqTlgo9Ov persona)
     this.speakFallback(text, lang, onEnd);
   }
 

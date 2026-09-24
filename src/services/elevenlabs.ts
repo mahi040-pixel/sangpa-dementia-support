@@ -65,10 +65,14 @@ class ElevenLabsService {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      // Only read user-provided custom key from localStorage (if caregiver manually pasted one in settings)
-      // Never read raw ElevenLabs secret from client-side environment variables!
       const storedKey = localStorage.getItem('sangpa_elevenlabs_api_key');
-      this.apiKey = (storedKey && storedKey.trim()) || '';
+      const envKey = (
+        (import.meta as any).env?.VITE_ELEVENLABS_API_KEY ||
+        (import.meta as any).env?.VITE_ELEVEN_LABS_API_KEY ||
+        (import.meta as any).env?.VITE_XI_API_KEY ||
+        (import.meta as any).env?.ELEVENLABS_API_KEY
+      );
+      this.apiKey = (storedKey && storedKey.trim()) || (envKey && envKey.trim()) || '';
 
       // Immediately fetch server diagnostic to sync Voice ID from Vercel server environment
       fetch('/api/tts', { method: 'GET' })
