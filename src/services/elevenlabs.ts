@@ -3,8 +3,19 @@ import { LanguageCode } from '../types';
 // ElevenLabs Voice Configuration for Sangpa (Voice ID: 5f1FjpWl2X8UqTlgo9Ov)
 export const DEFAULT_VOICE_ID = '5f1FjpWl2X8UqTlgo9Ov';
 export const ELEVENLABS_VOICE_ID = (
-  (typeof process !== 'undefined' && process.env?.ELEVENLABS_VOICE_ID) ||
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ELEVENLABS_VOICE_ID) ||
+  (typeof process !== 'undefined' && (
+    process.env?.ELEVENLABS_VOICE_ID ||
+    process.env?.VITE_ELEVENLABS_VOICE_ID ||
+    process.env?.NEXT_PUBLIC_ELEVENLABS_VOICE_ID ||
+    process.env?.ELEVEN_VOICE_ID ||
+    process.env?.VOICE_ID
+  )) ||
+  (typeof import.meta !== 'undefined' && (
+    (import.meta as any).env?.VITE_ELEVENLABS_VOICE_ID ||
+    (import.meta as any).env?.VITE_VOICE_ID ||
+    (import.meta as any).env?.VITE_ELEVEN_VOICE_ID ||
+    (import.meta as any).env?.ELEVENLABS_VOICE_ID
+  )) ||
   DEFAULT_VOICE_ID
 ).trim();
 export const ELEVENLABS_VOICE_NAME = 'Suhana J – Very Young & Joyful Narrator';
@@ -58,6 +69,18 @@ class ElevenLabsService {
       // Never read raw ElevenLabs secret from client-side environment variables!
       const storedKey = localStorage.getItem('sangpa_elevenlabs_api_key');
       this.apiKey = (storedKey && storedKey.trim()) || '';
+
+      // Immediately fetch server diagnostic to sync Voice ID from Vercel server environment
+      fetch('/api/tts', { method: 'GET' })
+        .then(res => res.json())
+        .then(data => {
+          if (data?.elevenLabsVoiceId) {
+            this.serverVoiceId = data.elevenLabsVoiceId;
+          } else if (data?.voiceId) {
+            this.serverVoiceId = data.voiceId;
+          }
+        })
+        .catch(() => {});
     }
   }
 

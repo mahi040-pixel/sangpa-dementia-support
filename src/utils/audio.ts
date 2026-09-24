@@ -656,7 +656,7 @@ class AudioManager {
       return;
     }
 
-    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (OpenAI TTS model tts-1 & ElevenLabs)
+    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (Primary: ElevenLabs with custom Voice ID, Fallback: OpenAI TTS)
     try {
       const openAiKey = getOpenAIApiKey();
       const controller = new AbortController();
@@ -667,9 +667,9 @@ class AudioManager {
         body: JSON.stringify({ 
           text, 
           lang: langCode,
-          openAiApiKey: openAiKey || undefined,
           voiceId: elevenLabsService.getVoiceId(),
-          apiKey: elevenLabsService.getApiKey() || (openAiKey ? openAiKey : undefined)
+          apiKey: elevenLabsService.getApiKey() || undefined,
+          openAiApiKey: openAiKey || undefined
         }),
         signal: controller.signal
       });
@@ -688,7 +688,26 @@ class AudioManager {
       console.warn('[TTS API Endpoint Notice]', err);
     }
 
-    // 4. Direct Client-side OpenAI TTS if key is present in client settings/env
+    // 4. Try Direct ElevenLabs Multilingual v2 with configured Voice ID if key is present
+    const clientElevenKey = elevenLabsService.getApiKey() || (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ELEVENLABS_API_KEY);
+    if (clientElevenKey && clientElevenKey.length > 5) {
+      try {
+        const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
+        if (audioUrl) {
+          this.dynamicTtsCache.set(cacheKey, audioUrl);
+          await this.playAudioAsset(audioUrl, onEnd);
+          return;
+        }
+      } catch (err: any) {
+        console.warn('[Direct ElevenLabs Client Notice]', err);
+        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
+          if (onEnd) onEnd();
+          return;
+        }
+      }
+    }
+
+    // 5. Direct Client-side OpenAI TTS fallback ONLY if ElevenLabs failed or is unavailable
     const clientOpenAiKey = getOpenAIApiKey();
     if (clientOpenAiKey && clientOpenAiKey.length > 10) {
       try {
@@ -720,23 +739,6 @@ class AudioManager {
         }
       } catch (clientTtsErr) {
         console.warn('[OpenAI Direct TTS Client Notice]', clientTtsErr);
-      }
-    }
-
-    // 5. Try ElevenLabs Multilingual v2 directly if configured
-    if (elevenLabsService.hasApiKey()) {
-      try {
-        const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
-        if (audioUrl) {
-          this.dynamicTtsCache.set(cacheKey, audioUrl);
-          await this.playAudioAsset(audioUrl, onEnd);
-          return;
-        }
-      } catch (err: any) {
-        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
-          if (onEnd) onEnd();
-          return;
-        }
       }
     }
 
