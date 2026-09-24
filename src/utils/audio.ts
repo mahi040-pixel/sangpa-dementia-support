@@ -14,48 +14,9 @@ const mapLangToCode = (lang: string): LanguageCode => {
 };
 
 const detectScriptLanguage = (text: string, fallbackLang: LanguageCode): LanguageCode => {
-  // If fallbackLang is already explicitly specified as a regional language, strictly preserve it
-  if (fallbackLang === 'as' || fallbackLang === 'mni' || fallbackLang === 'bn') {
-    // If text contains Eastern Nagari script characters, refine between as/mni/bn
-    if (/[\u0980-\u09FF]/.test(text)) {
-      if (
-        /[\u09F0\u09F1]/.test(text) ||
-        text.includes('অসমীয়া') ||
-        text.includes('চাংপা') ||
-        text.includes('আইতা') ||
-        text.includes('সেউজীয়া') ||
-        text.includes('নমস্কাৰ') ||
-        text.includes('বুটাম') ||
-        text.includes('সাজু')
-      ) {
-        return 'as';
-      }
-      if (
-        text.includes('মৈতৈলোন্') ||
-        text.includes('খুরুমজরি') ||
-        text.includes('তরাম্না') ||
-        text.includes('শেম-শারে') ||
-        text.includes('বটনদু')
-      ) {
-        return 'mni';
-      }
-      if (
-        text.includes('বাংলা') ||
-        text.includes('সাংপা') ||
-        text.includes('দিদিমা') ||
-        text.includes('নমস্কার') ||
-        text.includes('বোতামটি') ||
-        text.includes('প্রস্তুত')
-      ) {
-        return 'bn';
-      }
-      return fallbackLang;
-    }
+  // If a specific language is already explicitly selected by the user, strictly preserve it
+  if (fallbackLang && fallbackLang !== 'en') {
     return fallbackLang;
-  }
-
-  if (fallbackLang === 'nag') {
-    return 'nag';
   }
 
   // Eastern Nagari script (Assamese, Bengali, Manipuri)
@@ -81,25 +42,15 @@ const detectScriptLanguage = (text: string, fallbackLang: LanguageCode): Languag
     ) {
       return 'mni';
     }
-    if (
-      text.includes('বাংলা') ||
-      text.includes('সাংপা') ||
-      text.includes('দিদিমা') ||
-      text.includes('নমস্কার') ||
-      text.includes('বোতামটি') ||
-      text.includes('প্রস্তুত')
-    ) {
-      return 'bn';
-    }
     return 'bn';
   }
 
-  // Devanagari letters ONLY (excluding Danda \u0964 and double Danda \u0965 used across Indian scripts)
+  // Devanagari letters (Hindi)
   if (/[\u0901-\u0963\u0966-\u097F]/.test(text)) {
     return 'hi';
   }
 
-  return fallbackLang;
+  return fallbackLang || 'en';
 };
 
 class AudioManager {
@@ -503,31 +454,7 @@ class AudioManager {
   // In-memory cache for dynamic speech audio blobs
   private dynamicTtsCache = new Map<string, string>();
 
-  // Match speech text to high-fidelity companion voice assets only when text specifically matches pre-recorded phrases
-  private getMatchingAudioAsset(text: string, langCode: LanguageCode): string | null {
-    const t = text.toLowerCase().trim();
-
-    // 0. Direct match for opening welcome instructions across all 6 supported languages
-    if (
-      t.includes('welcome to sangpa') ||
-      (t.includes('green button') && (t.includes('caregiver button') || t.includes('white button') || t.includes('swagat asey'))) ||
-      (t.includes('हरे बटन') && (t.includes('सफेद बटन') || t.includes('प्यारा स्वागत'))) ||
-      (t.includes('সেউজীয়া বুটাম') || (t.includes('বুটাম') && (t.includes('নিৰ্দেশ') || t.includes('বগা বুটাম')))) ||
-      (t.includes('সবুজ বোতাম') || (t.includes('বোতাম') && (t.includes('নির্দেশনা') || t.includes('সাদা বোতাম') || t.includes('স্বাগতম') || t.includes('ভালোবাসা')))) ||
-      (t.includes('বটনদু') && (t.includes('অশেংবা') || t.includes('পাউতাক') || t.includes('তরাম্না') || t.includes('অঙৌবা বটনদু')))
-    ) {
-      if (langCode === 'as') return '/assets/voice_as_opening_instructions.mp3';
-      if (langCode === 'bn') return '/assets/voice_bn_opening_instructions.mp3';
-      if (langCode === 'mni') return '/assets/voice_mni_opening_instructions.mp3';
-      if (langCode === 'nag') return '/assets/voice_nag_opening_instructions.mp3';
-      if (langCode === 'hi' || /[\u0901-\u0963\u0966-\u097F]/.test(text)) return '/assets/voice_hi_opening_instructions.mp3';
-      return '/assets/voice_en_opening_instructions.mp3';
-    }
-
-    return null;
-  }
-
-  // Plays pre-rendered or dynamic high-fidelity audio asset
+  // Plays synthesized or custom audio asset
   playAudioAsset(url: string, onEnd?: () => void): Promise<boolean> {
     this.stopSpeaking();
     return new Promise((resolve) => {
@@ -554,7 +481,7 @@ class AudioManager {
     });
   }
 
-  // Text-To-Speech powered by real-time dynamic voice synthesis
+  // Text-To-Speech powered by real-time dynamic ElevenLabs voice synthesis
   async speak(text: string, lang = 'en-IN', onEnd?: () => void) {
     if (this.isMuted || !text || !text.trim()) {
       if (onEnd) setTimeout(onEnd, 1500);
@@ -573,14 +500,7 @@ class AudioManager {
       return;
     }
 
-    // 2. Exact Pre-rendered Audio Asset (0ms delay for language switcher/onboarding)
-    const matchingAsset = this.getMatchingAudioAsset(text, langCode);
-    if (matchingAsset) {
-      await this.playAudioAsset(matchingAsset, onEnd);
-      return;
-    }
-
-    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts using ELEVENLABS_VOICE_ID
+    // 2. Dynamic Voice Synthesis via serverless endpoint /api/tts using custom ELEVENLABS_VOICE_ID
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 25000);
@@ -704,14 +624,14 @@ class AudioManager {
     }
   }
 
-  // Play bundled sample audio
+  // Audition English voice sample via ElevenLabs
   async playSuhanaAuthenticSample(onEnd?: () => void): Promise<void> {
-    await this.playAudioAsset('/assets/voice_suhana_preview.mp3', onEnd);
+    await this.speak(elevenLabsService.getSampleGreeting('en'), 'en-IN', onEnd);
   }
 
-  // Play bundled sample greeting
+  // Audition Hindi voice sample via ElevenLabs
   async playHindiAuthenticSample(onEnd?: () => void): Promise<void> {
-    await this.playAudioAsset('/assets/voice_hi_greeting.mp3', onEnd);
+    await this.speak(elevenLabsService.getSampleGreeting('hi'), 'hi-IN', onEnd);
   }
 
   // Test Sangpa's voice in any of the app's supported languages

@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "functions": {
+    "api/tts.ts": {
+      "maxDuration": 30
+    },
+    "api/chat.ts": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

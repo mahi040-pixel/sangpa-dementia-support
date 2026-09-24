@@ -324,20 +324,24 @@ class ElevenLabsService {
     }
   }
 
-  // Plays the authentic bundled Suhana voice audition sample
-  playPreviewSample(): Promise<void> {
+  // Auditions English voice sample via live ElevenLabs TTS
+  async playPreviewSample(): Promise<void> {
+    const url = await this.synthesizeSpeech(this.getSampleGreeting('en'), 'en');
+    if (!url) return;
     return new Promise((resolve) => {
-      const audio = new Audio('/assets/voice_suhana_preview.mp3');
+      const audio = new Audio(url);
       audio.onended = () => resolve();
       audio.onerror = () => resolve();
       audio.play().catch(() => resolve());
     });
   }
 
-  // Plays authentic bundled Hindi greeting
-  playHindiSample(): Promise<void> {
+  // Auditions Hindi greeting via live ElevenLabs TTS
+  async playHindiSample(): Promise<void> {
+    const url = await this.synthesizeSpeech(this.getSampleGreeting('hi'), 'hi');
+    if (!url) return;
     return new Promise((resolve) => {
-      const audio = new Audio('/assets/voice_hi_greeting.mp3');
+      const audio = new Audio(url);
       audio.onended = () => resolve();
       audio.onerror = () => resolve();
       audio.play().catch(() => resolve());

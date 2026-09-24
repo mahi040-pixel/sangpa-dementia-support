@@ -56,12 +56,19 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
   const elevenLabsApiKey = (
     process.env.ELEVENLABS_API_KEY ||
     process.env.VITE_ELEVENLABS_API_KEY ||
+    process.env.ELEVEN_LABS_API_KEY ||
+    process.env.ELEVEN_API_KEY ||
+    process.env.XI_API_KEY ||
+    body?.apiKey ||
     ''
   ).trim().replace(/^["']|["']$/g, '');
 
   const elevenLabsVoiceId = (
     process.env.ELEVENLABS_VOICE_ID ||
     process.env.VITE_ELEVENLABS_VOICE_ID ||
+    process.env.ELEVEN_LABS_VOICE_ID ||
+    process.env.ELEVEN_VOICE_ID ||
+    process.env.VOICE_ID ||
     body?.voiceId ||
     ''
   ).trim().replace(/^["']|["']$/g, '');
@@ -76,6 +83,7 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
       configured: hasKey && hasVoice,
       engine: 'elevenlabs',
       voiceId: elevenLabsVoiceId,
+      elevenLabsVoiceId: elevenLabsVoiceId,
       modelId: ELEVENLABS_MODEL_ID,
       hasApiKey: hasKey,
       hasVoiceId: hasVoice,
@@ -102,7 +110,7 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
     return;
   }
 
-  const text = body?.text;
+  const text = body?.text || (req.query as any)?.text;
   if (!text || typeof text !== 'string' || !text.trim()) {
     const err = { error: 'Missing or empty text parameter' };
     if (res.status && res.json) return res.status(400).json(err);
@@ -141,19 +149,20 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
     return;
   }
 
-  // Clean text: strip markdown characters (*, _, #, `, etc.) so speech doesn't read formatting symbols
+  // Clean text: strip emojis and markdown characters so speech synthesis sounds natural
   const cleanText = text
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
     .replace(/[*_#`~[\]()<>]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
   // 4. Server-side ElevenLabs synthesis using ELEVENLABS_VOICE_ID
   try {
-    const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}?output_format=mp3_44100_128`;
+    const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}?output_format=mp3_44100_128&optimize_streaming_latency=3`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout for cold start & regional languages
 
-    const response = await fetch(elevenLabsUrl, {
+    let response = await fetch(elevenLabsUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -165,12 +174,35 @@ export default async function handler(req: RequestWithBody, res: ResponseWithHel
         model_id: ELEVENLABS_MODEL_ID,
         voice_settings: {
           stability: 0.50,
-          similarity_boost: 0.85,
+          similarity_boost: 0.75,
           use_speaker_boost: true
         }
       }),
       signal: controller.signal
     });
+
+    // Fallback: If 400 Bad Request, retry with eleven_turbo_v2_5
+    if (!response.ok && response.status === 400) {
+      console.warn(`[ElevenLabs TTS] ${ELEVENLABS_MODEL_ID} returned 400, attempting eleven_turbo_v2_5 fallback...`);
+      response = await fetch(elevenLabsUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': elevenLabsApiKey,
+          'Accept': 'audio/mpeg'
+        },
+        body: JSON.stringify({
+          text: cleanText,
+          model_id: 'eleven_turbo_v2_5',
+          voice_settings: {
+            stability: 0.50,
+            similarity_boost: 0.75
+          }
+        }),
+        signal: controller.signal
+      });
+    }
+
     clearTimeout(timeout);
 
     if (response.ok) {
