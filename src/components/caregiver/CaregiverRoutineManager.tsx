@@ -18,7 +18,7 @@ import { audio } from '../../utils/audio';
 import { ReminderItem } from '../../types';
 
 export const CaregiverRoutineManager: React.FC = () => {
-  const { reminders, addReminder, deleteReminder } = useApp();
+  const { reminders, addReminder, deleteReminder, language } = useApp();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [step, setStep] = useState(1);
@@ -138,7 +138,13 @@ export const CaregiverRoutineManager: React.FC = () => {
               <button
                 onClick={() => {
                   audio.playGentleChime();
-                  audio.speak(rem.audioText, 'en-IN');
+                  const speechLang = language === 'as' ? 'as-IN' :
+                                     language === 'bn' ? 'bn-IN' :
+                                     language === 'hi' ? 'hi-IN' :
+                                     language === 'es' ? 'es-ES' :
+                                     language === 'mni' ? 'mni-IN' :
+                                     language === 'nag' ? 'nag-IN' : 'en-IN';
+                  audio.speak(rem.audioText, speechLang);
                 }}
                 className="p-2 rounded-xl bg-sangpa-100 hover:bg-sangpa-200 text-sangpa-700"
                 title="Preview Voice Announcement"

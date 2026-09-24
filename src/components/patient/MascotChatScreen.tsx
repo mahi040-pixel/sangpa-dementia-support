@@ -421,6 +421,10 @@ export const MascotChatScreen: React.FC = () => {
           aiReply = `হয় ${callingName}, মই আপোনাৰ কথা বৰ মৰমেৰে শুনি আছোঁ। মই সদায় আপোনাৰ ওচৰতেই আছোঁ।`;
         } else if (language === 'bn') {
           aiReply = `হ্যাঁ ${callingName}, আমি খুব মন দিয়ে আপনার কথা শুনছি। আপনার পাশে থাকতে পেরে আমার ভীষণ ভালো লাগছে।`;
+        } else if (language === 'mni') {
+          aiReply = `হোই ${callingName}, ঐহাক্না অদোমগী ৱাফম অসি নুংশিনা তারি। ঐহাক অদোমগী নক্ননা লৈরি।`;
+        } else if (language === 'nag') {
+          aiReply = `Hoi ${callingName}, moi apuni laga kotha bhal pora suni asey. Moi apuni logot sadaa asey.`;
         } else {
           aiReply = `Yes ${callingName}, I am listening to you with all my heart. Everything is peaceful and well right beside you.`;
         }

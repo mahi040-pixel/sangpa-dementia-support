@@ -1,10 +1,10 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { PhoneCall, X, Volume2, ShieldCheck, CheckCircle } from 'lucide-react';
 import { audio } from '../../utils/audio';
 
 export const RuralFallbackCallModal: React.FC = () => {
-  const { fallbackCallActive, setFallbackCallActive, patientProfile } = useApp();
+  const { fallbackCallActive, setFallbackCallActive, patientProfile, language } = useApp();
 
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'completed'>('ringing');
 
@@ -13,9 +13,15 @@ export const RuralFallbackCallModal: React.FC = () => {
   const handleAnswer = () => {
     setCallState('connected');
     audio.playGentleChime();
+    const speechLang = language === 'as' ? 'as-IN' :
+                       language === 'bn' ? 'bn-IN' :
+                       language === 'hi' ? 'hi-IN' :
+                       language === 'es' ? 'es-ES' :
+                       language === 'mni' ? 'mni-IN' :
+                       language === 'nag' ? 'nag-IN' : 'en-IN';
     audio.speak(
       "Namaste Kamala Dadi. This is Sangpa calling via regular telephone line. It is time for your morning water and medicine. Press 1 to confirm.",
-      'en-IN'
+      speechLang
     );
   };
 

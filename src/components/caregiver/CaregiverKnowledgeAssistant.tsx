@@ -268,14 +268,20 @@ export const CaregiverKnowledgeAssistant: React.FC = () => {
     }
 
     audio.stopSpeaking();
-    // Clean up markdown characters for speech
     const plainText = textToSpeak
       .replace(/[*#_`•-]/g, ' ')
       .replace(/\n+/g, '. ')
       .trim();
 
+    const speechLang = language === 'as' ? 'as-IN' :
+                       language === 'bn' ? 'bn-IN' :
+                       language === 'hi' ? 'hi-IN' :
+                       language === 'es' ? 'es-ES' :
+                       language === 'mni' ? 'mni-IN' :
+                       language === 'nag' ? 'nag-IN' : 'en-IN';
+
     setCurrentlySpeakingId(messageId);
-    audio.speak(plainText, 'en-IN', () => {
+    audio.speak(plainText, speechLang, () => {
       setCurrentlySpeakingId(null);
     });
   };

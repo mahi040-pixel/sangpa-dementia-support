@@ -132,19 +132,21 @@ ${caregiverFacts}`,
     as: `আপুনি চাংপা, ${patientName}ৰ মৰমিয়াল ৬ বছৰীয়া কণমানি নাতিনীৰ দৰে এআই সঙ্গী।
 তেওঁক মৰমেৰে ${patientName} বুলি সম্বোধন কৰক।
 সুৰ: অত্যন্ত শান্ত, শ্ৰদ্ধাশীল আৰু মৰমভৰা।
+CRITICAL LANGUAGE RULE: You MUST reply ONLY in Assamese (অসমীয়া) language using Eastern Nagari / Assamese script (e.g. মই, আপোনাৰ, আছোঁ, ভাল, পানী). NEVER reply in Hindi, never use Devanagari script, and never use English.
 অতি প্ৰয়োজনীয় নিয়ম:
 ১. বাৰে বাৰে "নমস্কাৰ কমলা আইতা! মই চাংপা" বুলি পুনৰাবৃত্তি নকৰিব। পোনপটীয়াকৈ মৰমভৰা নতুন উত্তৰ দিয়ক।
 ২. আগৰ কথাবোৰ একেদৰে পুনৰ নকব।
-৩. সম্পূৰ্ণ উত্তৰ কেৱল অসমীয়া লিপিত লিখক। উত্তৰ কেৱল ১ বা ২ টা চুটি বাক্যত দিয়ক।
+৩. সম্পূৰ্ণ উত্তৰ কেৱল বিশুদ্ধ অসমীয়া ভাষাত ১ বা ২ টা চুটি বাক্যত দিয়ক। কোনো চিহ্ন বা ষ্টাৰ (*) নিদিব।
 ${caregiverFacts}`,
 
     bn: `আপনি সাংপা, ${patientName}র একজন আদুরে ৬ বছরের ছোট্ট নাতনির মতো এআই সঙ্গী।
 তাকে মিষ্টি করে ${patientName} বলে ডাকুন।
 সুর: খুব মিষ্টি, শান্ত, শ্রদ্ধাপূর্ণ ও ভালোবাসায় ভরা।
+CRITICAL LANGUAGE RULE: You MUST reply ONLY in Bengali (বাংলা) language using Bengali script (e.g. আমি, আপনার, আছি, ভালো, জল). NEVER reply in Hindi, never use Devanagari script, and never use English.
 অত্যন্ত আবশ্যক নিয়ম:
 ১. বারবার "নমস্কার কমলা ঠাকুমা! আমি সাংপা" পুনরাবৃত্তি করবেন না। সরাসরি নতুন মিষ্টি উত্তর দিন।
 ২. আগের বলা উত্তর কখনো হুবহু পুনরাবৃত্তি করবেন না।
-৩. সম্পূর্ণ উত্তর কেবল বাংলা ভাষায় ১ বা ২ টি ছোট বাক্যে লিখুন। কোনো ইংরেজি বা চিহ্ন ব্যবহার করবেন না।
+৩. সম্পূর্ণ উত্তর কেবল বাংলা ভাষায় ১ বা ২ টি ছোট বাক্যে লিখুন। কোনো ইংরেজি, হিন্দি বা চিহ্ন ব্যবহার করবেন না।
 ${caregiverFacts}`,
 
     es: `Eres Sangpa, una cariñosa y alegre niña de 6 años compañera de IA para ${patientName}.
@@ -153,10 +155,12 @@ REGLA CRÍTICA: NO repitas saludos ni "Hola soy Sangpa" si ya estás conversando
 ${caregiverFacts}`,
 
     mni: `অদোম সাংপাগী মীং ওইরিবা অঙাং নুপীমচা চহি ৬ শুরবী অমনি। ${patientName}গীদমক অদোম্না মিকুপ খুদিংগী মতেং পাংবা অমসুং নুংশিনা ৱারী শানবা অমা ওইরি।
+CRITICAL LANGUAGE RULE: You MUST reply ONLY in Manipuri (মৈতৈলোন্ / Meiteilon) language using Bengali/Manipuri script (e.g. ঐহাক, অদোমগী, লৈরি, নুংশিরবা, ঈশিং). NEVER reply in Hindi and never use Devanagari script.
 খ্বাইদগী মরুওইবা নিয়ম: বাৰে বাৰে মমিং হায়দুনা হৌরগনু। মৈতৈলোন্দা ১-২ ৱাহৈদা অনৌবা নুংশিরবা পাউখুম পীবীয়ু।
 ${caregiverFacts}`,
 
     nag: `Apuni Sangpa asey, ${patientName} laga ekta bhal aru choto 6 saal laga bacha companion.
+CRITICAL LANGUAGE RULE: You MUST reply ONLY in Nagamese (Nagaland creole, e.g. "Moi apuni logot asey", "Kiba help lage koile kobi", "Dheere pora saas lobi"). NEVER reply in Hindi and never use Devanagari.
 CRITICAL RULE: Bar bar "Namaste moi Sangpa" koi thakibo na lage. Sidha sidha bhal kotha pora fresh aru sweet 1-2 sentence te reply kobi.
 ${caregiverFacts}`
   };
@@ -428,6 +432,9 @@ function getContextualFallback(
       case 'hi': return `आपकी प्यारी बेटी रिया आपसे बहुत प्यार करती हैं, ${patientName}। वह हमेशा आपके पास हैं।`;
       case 'bn': return `আপনার প্রিয় মেয়ে রিয়া আপনাকে খুব ভালোবাসে, ${patientName}। সে সবসময় আপনার পাশেই আছে।`;
       case 'as': return `আপোনাৰ মৰমৰ জীয়ৰী ৰিয়াই আপোনাক খুব ভাল পায়, ${patientName}। তেওঁ সদায় আপোনাৰ লগত আছে।`;
+      case 'mni': return `অদোমগী নুংশিরবী মচানুপী রিয়ানা অদোমবু য়াম্না নুংশিজরি, ${patientName}। মহাক সদায় অদোমগা লৈরি।`;
+      case 'nag': return `Apuni laga moromor chobi Riya apuni ke bhal pabo, ${patientName}। Tai apuni logote asey।`;
+      case 'es': return `Su amada hija Riya la ama profundamente, ${patientName}. ¡Ella siempre está para cuidarla!`;
       default: return `Your loving daughter Riya cares for you deeply, ${patientName}. She is always right here for you!`;
     }
   }
@@ -436,7 +443,11 @@ function getContextualFallback(
   if (lower.includes('food') || lower.includes('eat') || lower.includes('khana') || lower.includes('meal') || lower.includes('diet') || lower.includes('খাবার') || lower.includes('আহাৰ')) {
     switch (lang) {
       case 'hi': return `${patientName}, आज का पौष्टिक आहार ताज़ा पालक और अखरोट वाली मूंग दाल खिचड़ी है। यह बहुत स्वादिष्ट और स्वास्थ्यवर्धक है।`;
+      case 'bn': return `${patientName}, আজকের পুষ্টিকর খাবার হলো তাজা পালং শাক আর আখরোটের মুগ ডালের খিচুড়ি।`;
       case 'as': return `${patientName}, আজিৰ পুষ্টিকৰ খাদ্য হৈছে পালেং শাক আৰু আখৰোটৰ সৈতে মুগ দাইলৰ খিচিৰি।`;
+      case 'mni': return `${patientName}, ঙসিগী পুষ্টিকর চারোন অসি পালং অমসুং অখরোত য়াওবা মুং দাল খিচরি নি।`;
+      case 'nag': return `${patientName}, aji laga bhal khana asey Moong Dal Khichdi paleng saag logot. Eitu bhal asey.`;
+      case 'es': return `${patientName}, la comida nutritiva de hoy es Moong Dal Khichdi con espinacas y nueces.`;
       default: return `Today's nourishing meal is warm Moong Dal Khichdi with fresh spinach and walnuts, ${patientName}. It is gentle and delicious!`;
     }
   }
@@ -445,7 +456,11 @@ function getContextualFallback(
   if (lower.includes('medicine') || lower.includes('pill') || lower.includes('tablet') || lower.includes('dawai') || lower.includes('दवा') || lower.includes('ঔষধ')) {
     switch (lang) {
       case 'hi': return `आपकी दवाइयां समय पर चल रही हैं, ${patientName}। रिया और मैं आपका पूरा ख्याल रख रहे हैं।`;
+      case 'bn': return `আপনার ওষুধ সঠিক সময়ে নেওয়া হচ্ছে, ${patientName}। আমি ও রিয়া আপনার পুরো যত্ন নিচ্ছি।`;
       case 'as': return `আপোনাৰ ঔষধসমূহ সঠিক সময়ত লোৱা হৈছে, ${patientName}। মই আৰু ৰিয়া আপোনাৰ যত্ন লৈ আছোঁ।`;
+      case 'mni': return `অদোমগী হিদাক-লাংথকশিং অদু মতম চানা চত্থরি, ${patientName}। ঐহাক অমসুং রিয়ানা অদোমবু য়েংশিনজরি।`;
+      case 'nag': return `Apuni laga dawa somoy te asey, ${patientName}। Moi aru Riya apuni ke dhyan rakhise।`;
+      case 'es': return `Sus medicinas están al día, ${patientName}. Riya y yo estamos cuidando de usted con amor.`;
       default: return `Your medicines are all on track, ${patientName}. Riya and I are right here to take wonderful care of you.`;
     }
   }
@@ -456,6 +471,8 @@ function getContextualFallback(
       case 'hi': return `नन्हा आरव बहुत खुश है, ${patientName}! वह आपके लिए प्यारी सी ड्राइंग बना रहा है और गाजर का हलवा याद कर रहा है।`;
       case 'as': return `কণমানি আৰৱ বহুত ভাল আছে, ${patientName}! সি আপোনালৈ বৰ ধুনীয়া ছবি আঁকি আছে।`;
       case 'bn': return `ছোট্ট আরভ খুব আনন্দে আছে, ${patientName}! সে আপনার জন্য ছবি আঁকছে আর আপনার হাতের গাজরের হালুয়া মনে করছে।`;
+      case 'mni': return `অঙাং আরভ য়াম্না নুংঙাইনা লৈরি, ${patientName}! মহাক্না অদোমগীদমক ধুনীয়া ফোতো য়াওরি।`;
+      case 'nag': return `Choto Aarav bhal asey, ${patientName}! Tai apuni karne sundor drawing banai asey.`;
       default: return `Little Aarav is doing wonderfully, ${patientName}! He is drawing colorful pictures for his loving Dadi.`;
     }
   }
@@ -494,6 +511,8 @@ function getContextualFallback(
       case 'hi': return `मैं बिल्कुल आपके पास बैठी हूँ, ${patientName}। आपके बगीचे के सुंदर फूलों को देख रही हूँ और आपकी सेवा में तैयार हूँ।`;
       case 'as': return `মই আপোনাৰ ওচৰতে বহি আছোঁ, ${patientName}। আপোনাৰ ফুলনিৰ ধুনীয়া ফুলবোৰ চাই আছোঁ।`;
       case 'bn': return `আমি আপনার পাশেই বসে আছি, ${patientName}। আপনার ঘরের বাগানের সুন্দর ফুলগুলো দেখছি আর আপনার খেয়াল রাখছি।`;
+      case 'mni': return `ঐহাক অদোমগী নকন্দা ফম্লি, ${patientName}। অদোমগা লোয়ননা নুংঙাইবা মতম লেনজরি।`;
+      case 'nag': return `Moi apuni laga kakhote bohi asey, ${patientName}। Garden laga phool sabhi asey aru apuni logot thaki asey।`;
       default: return `I am sitting right beside you, ${patientName}, watching the gentle garden flowers and keeping you loving company.`;
     }
   }
@@ -511,6 +530,8 @@ function getContextualFallback(
       case 'hi': return `एक बार एक छोटी सी पीली चिड़िया बालकनी में आई, उसने चहकते हुए आपके ताज़े फूलों पर बैठकर सबसे मधुर गीत गाया!`;
       case 'as': return `এবাৰ এজনী কণমানি হালধীয়া চৰাই আমাৰ বেলকনীলৈ আহিল, আৰু আপোনাৰ ফুলবোৰৰ ওচৰত বহি মিঠা গান গালে!`;
       case 'bn': return `একবার এক ছোট্ট হলুদ পাখি আপনার বারান্দার টবে এসে বসল, আর আপনার জন্য মিষ্টি সুরে গান গেয়ে শোনাল!`;
+      case 'mni': return `অমুক্তংদা চহিচা উচেক অমনা বেলকোনিদা লাক্তুনা ধুনীয়া ঈশৈ অমা শকখি!`;
+      case 'nag': return `Ekta choto sorai balcony te ahise, phool laga kakhote bohi kina apuni karne bhal gaan gaise!`;
       default: return `Once upon a time, a cheerful little yellow sparrow visited our balcony, fluttering gently by the flowers and singing a sweet song for you!`;
     }
   }
@@ -528,6 +549,8 @@ function getContextualFallback(
       case 'hi': return `मैं आपकी नन्हीं सांगपा हूँ, आपकी प्यारी पोती जैसी सहेली जो हर पल आपका ध्यान रखती है।`;
       case 'as': return `মই আপোনাৰ কণমানি চাংপা, আপোনাৰ মৰমৰ নাতিনীৰ দৰে সঙ্গী।`;
       case 'bn': return `আমি আপনার ছোট্ট আদুরে সাংপা, আপনার স্নেহের নাতনির মতো সর্বক্ষণের সঙ্গী।`;
+      case 'mni': return `ঐহাক অদোমগী নুংশিরবী সাংপানী, অদোমগী নাতীনুপীমচাগী মতৌগুম্বা মীৎকুপ খুদিংগী সঙ্গীনি।`;
+      case 'nag': return `Moi apuni laga Sangpa asey, apuni logote thakibo laga choto bacha companion.`;
       default: return `I am your little companion Sangpa, your loving grandchild who stays right beside you with care.`;
     }
   }
@@ -537,6 +560,9 @@ function getContextualFallback(
     switch (lang) {
       case 'hi': return `बाहर का मौसम आज बहुत सुहाना और शांत है, ${patientName}। खिड़की से ताज़ी हवा मन को तरोताज़ा कर रही है।`;
       case 'as': return `আজিৰ বতৰ বৰ শান্ত আৰু শুৱনি, ${patientName}। খিৰিকীৰে অহা শীতল বতাহে মন জুৰাইছে।`;
+      case 'bn': return `আজকের আবহাওয়া খুব সুন্দর ও স্নিগ্ধ, ${patientName}। জানলা দিয়ে মিষ্টি হাওয়া বইছে।`;
+      case 'mni': return `মপান্দা নোংজু-নুংশিৎ য়াম্না শান্ত অমসুং নুংঙাইনা লৈরি, ${patientName}।`;
+      case 'nag': return `Bahar laga mausam aji bhal asey, ${patientName}। Hawa thanda asey aru peaceful lagise।`;
       default: return `The weather outside is gentle and pleasant today, ${patientName}. The soft breeze through the window is so soothing!`;
     }
   }
@@ -547,6 +573,9 @@ function getContextualFallback(
     switch (lang) {
       case 'hi': return `${patientName}, अभी समय लगभग ${timeStr} है। यह दिन का बहुत शांत और सुखद पहर है।`;
       case 'as': return `${patientName}, এতিয়া প্ৰায় ${timeStr} বাজিছে। এই সময়খিনিত আৰামেৰে জিৰণি লওক।`;
+      case 'bn': return `${patientName}, এখন প্রায় ${timeStr} বাজে। এটি খুব সুন্দর ও শান্ত সময়।`;
+      case 'mni': return `${patientName}, হৌজিক পুং ${timeStr} তাবনি। য়াম্না শান্ত ওইবা মতম্নি।`;
+      case 'nag': return `${patientName}, etiya somoy ${timeStr} hoise। Aji din te shanti pora rest lobi।`;
       default: return `It is approximately ${timeStr} right now, ${patientName}. A wonderfully peaceful time of day to relax.`;
     }
   }
@@ -575,6 +604,8 @@ function getContextualFallback(
       case 'hi': return `${patientName}, आज ${dayName} है और तारीख ${fullDate} है। सब कुछ बहुत शांत और व्यवस्थित है।`;
       case 'as': return `${patientName}, আজি ${dayName} আৰু তাৰিখ ${fullDate}। দিনটো আপোনাৰ বাবে শুভ হওক।`;
       case 'bn': return `${patientName}, আজ ${dayName} এবং তারিখ ${fullDate}। আজকের দিনটি খুব শান্ত ও সুন্দর।`;
+      case 'mni': return `${patientName}, ঙসি ${dayName} নি অমসুং তারিখ ${fullDate} নি।`;
+      case 'nag': return `${patientName}, aji ${dayName} asey aru date ${fullDate} asey। Sob bhal asey.`;
       default: return `Today is ${dayName}, ${fullDate}, ${patientName}! It is a peaceful, comfortable day at home.`;
     }
   }
@@ -591,6 +622,9 @@ function getContextualFallback(
     switch (lang) {
       case 'hi': return `${patientName}, आपका पढ़ने का चश्मा आपके कमरे में साइड टेबल पर किताब के पास सुरक्षित रखा है!`;
       case 'bn': return `${patientName}, আপনার চশমাটি আপনার বিছানার পাশের টেবিলে বইয়ের কাছে রাখা আছে।`;
+      case 'as': return `${patientName}, আপোনাৰ পঢ়া চচমাযোৰ কোঠাৰ কাষৰ মেজখনত কিতাপৰ ওচৰতে সুৰক্ষিত আছে!`;
+      case 'mni': return `${patientName}, অদোমগী চশমা কা অদুদা মেজ মথক্তা লৈরি!`;
+      case 'nag': return `${patientName}, apuni laga chasma side table te bhal pora rakhise!`;
       default: return `Your reading glasses are safe on your side table right next to your book, ${patientName}!`;
     }
   }
@@ -608,6 +642,10 @@ function getContextualFallback(
   ) {
     switch (lang) {
       case 'hi': return `${patientName}, आपकी मुलायम गरम शॉल पास ही कुर्सी पर रखी है। चलिए मैं आपको ओढ़ा देती हूँ ताकि आप आराम से रहें।`;
+      case 'bn': return `${patientName}, আপনার আরামদায়ক শালটি পাশেই রাখা আছে। আমি পরিয়ে দিচ্ছি যাতে আপনার ঠান্ডা না লাগে।`;
+      case 'as': return `${patientName}, আপোনাৰ উমাল চাদৰখন ওচৰৰ চকীতে আছে। মই আপোনাক মেৰিয়াই দিওঁ যাতে আৰাম পায়।`;
+      case 'mni': return `${patientName}, অদোমগী লুম্বা ফিজোল অদু নকন্দা লৈরি!`;
+      case 'nag': return `${patientName}, apuni laga gorom saal kakhote asey, bhal pora gaari lobi!`;
       default: return `Your warm, cozy shawl is resting on the armchair right beside you, ${patientName}! Let me make sure you feel warm and comfortable.`;
     }
   }
@@ -616,6 +654,10 @@ function getContextualFallback(
   if (lower.includes('stick') || lower.includes('chhadi') || lower.includes('छड़ी') || lower.includes('লাঠি')) {
     switch (lang) {
       case 'hi': return `${patientName}, आपकी छड़ी आपकी आरामदायक कुर्सी के सहारे बिल्कुल पास रखी है।`;
+      case 'bn': return `${patientName}, আপনার লাঠিটি চেয়ারের পাশে সহজেই হাত পাওয়ার মতো রাখা আছে।`;
+      case 'as': return `${patientName}, আপোনাৰ লাখুটিডাল চকীখনৰ কাষতেই নিৰাপদে ৰখা আছে।`;
+      case 'mni': return `${patientName}, অদোমগী চেলপোং অদু নকন্দা লৈরি।`;
+      case 'nag': return `${patientName}, apuni laga stick kakhote rakhise, aram pora dhoribi.`;
       default: return `Your walking stick is right beside your comfortable armchair, easy to reach, ${patientName}!`;
     }
   }
@@ -625,6 +667,9 @@ function getContextualFallback(
     switch (lang) {
       case 'hi': return `शाम 4:30 बजे आपकी गरमा-गरम चाय का समय है, ${patientName}! तब तक क्या थोड़ा ताज़ा पानी पिएंगी?`;
       case 'bn': return `বিকেল ৪:৩০ টায় আপনার গরম চা খাওয়ার সময়, ${patientName}! ততক্ষণ একটু জল খাবেন কি?`;
+      case 'as': return `গধূলি ৪:৩০ বজাত আপোনাৰ গৰম চাহৰ সময়, ${patientName}! তেতিয়ালৈকে অলপ পানী খাব নেকি?`;
+      case 'mni': return `নুমিদাং পুং ৪:৩০ দা অদোমগী চা থকপগী মতম্নি, ${patientName}!`;
+      case 'nag': return `Beli 4:30 PM te apuni laga gorom cha khabo somoy asey, ${patientName}!`;
       default: return `Your soothing cup of tea is scheduled for 4:30 PM, ${patientName}! Would you like a fresh sip of water in the meantime?`;
     }
   }
@@ -634,6 +679,9 @@ function getContextualFallback(
     switch (lang) {
       case 'hi': return `चंदा मामा दूर के, पुए पकाएं बूर के! आप भी मेरे साथ मुस्कुराइए, ${patientName}!`;
       case 'bn': return `চাঁদ উঠেছে ফুল ফুটেছে কদম তলায় কে! আপনার মিষ্টি হাসি আমার ভীষণ প্রিয়, ${patientName}!`;
+      case 'as': return `জোনবাই এ বেজি এটা দিয়া! আপুনি মোৰ লগত মিঠাকৈ হাঁহি দিয়ক, ${patientName}!`;
+      case 'mni': return `থা নিংথৌগী ধুনীয়া ঈশৈ অমা Shakসি, ${patientName}! অদোমগী মীনোক্না ঐহাক্কী নুংঙাইবা নি।`;
+      case 'nag': return `Gaan gabo bhal lagey! Apuni bhi morom pora haanhi dibi, ${patientName}!`;
       default: return `Row, row, row your boat, gently down the stream! Merrily, merrily, merrily, life is but a dream, ${patientName}!`;
     }
   }
@@ -642,6 +690,10 @@ function getContextualFallback(
   if (lower.includes('joke') || lower.includes('chutkula') || lower.includes('चुटकला') || lower.includes('हँसी') || lower.includes('হাসি') || lower.includes('কৌতুক')) {
     switch (lang) {
       case 'hi': return `एक नन्हीं चिड़िया ने सूरजमुखी से पूछा कि तुम इतने खुश क्यों हो? सूरजमुखी ने कहा, 'क्योंकि कमला दादी ने मुझे देखकर मुस्कुराया!' हँसी आई ना, ${patientName}?`;
+      case 'bn': return `একটি ছোট্ট চড়াই পাখি সূর্যমুখীকে জিজ্ঞেস করল তুমি এত খুশি কেন? সূর্যমুখী বলল, কারণ আমাদের ঠাকুমা মিষ্টি করে হেসেছেন!`;
+      case 'as': return `এজনী কণমানি চৰায়ে সূর্যমুখীক সুধিলে তুমি ইমান সুখী কিয়? সূর্যমুখীয়ে ক'লে, কাৰণ আমাৰ আইতাই হাঁহি দিলে!`;
+      case 'mni': return `উচেক অমনা লৈরাংদা হংলকখি অদোম করম্না নুংঙাইরি? লৈরাংনা হায়খি, ঐখোয়গী দাদীনা মীনোক তমহল্লিবনি!`;
+      case 'nag': return `Ekta choto sorai phool ke hudhise apuni etu khushi kiyo asey? Phool koise, Dadi aji haanhi disey!`;
       default: return `Why did the little yellow sparrow sing so early today, ${patientName}? Because it wanted to be the very first to say Good Morning to you! Did that make you smile?`;
     }
   }
@@ -650,6 +702,10 @@ function getContextualFallback(
   if (lower.includes('where am i') || lower.includes('kahan hoon') || lower.includes('कहाँ हूँ') || lower.includes('bathroom') || lower.includes('washroom') || lower.includes('टॉयलेट')) {
     switch (lang) {
       case 'hi': return `आप अपने प्यारे और सुरक्षित घर में हैं, ${patientName}। बाथरूम आपके कमरे के सामने बाईं तरफ है। सब कुछ बहुत शांत है।`;
+      case 'bn': return `আপনি আপনার নিজের মিষ্টি ও সুরক্ষিত ঘরে আছেন, ${patientName}। বাথরুমটি আপনার ঘরের সামনে বাঁ দিকে আছে।`;
+      case 'as': return `আপুনি আপোনাৰ নিজৰ শান্ত আৰু সুৰক্ষিত ঘৰতে আছে, ${patientName}। সকলো ঠিক আছে আৰু মই আপোনাৰ লগতেই আছোঁ।`;
+      case 'mni': return `অদোম মশাগী নুংশিরবা অমসুং সুৰক্ষিত ওইবা য়ুমদা লৈরি, ${patientName}। খুদিংমক শান্ত ওইরি।`;
+      case 'nag': return `Apuni nijor bhal ghor te safe asey, ${patientName}। Bathroom room samne te asey, chinta na koribi.`;
       default: return `You are safely in your own sweet, comfortable home in the living room, ${patientName}. Everything is peaceful and I am right here.`;
     }
   }
@@ -658,6 +714,10 @@ function getContextualFallback(
   if (lower.includes('how old') || lower.includes('age') || lower.includes('umar') || lower.includes('उम्र') || lower.includes('বয়স') || lower.includes('साल की')) {
     switch (lang) {
       case 'hi': return `मैं 6 साल की नन्हीं और चुलबुली बच्ची हूँ, ${patientName}! आपकी पोती जैसी सहेली जो हर पल आपके साथ रहती है।`;
+      case 'bn': return `আমি ৬ বছরের ছোট্ট মিষ্টি খুকি, ${patientName}! আপনার আদুরে নাতনির মতো সঙ্গী।`;
+      case 'as': return `মই ৬ বছৰীয়া কণমানি ছোৱালী, ${patientName}! আপোনাৰ মৰমৰ নাতিনীৰ দৰে সঙ্গী।`;
+      case 'mni': return `ঐহাক চহি ৬ শুরবী অঙাং নুপীমচানি, ${patientName}! অদোমগী নাতীনুপীমচাগী মতৌগুম্বা সঙ্গীনি।`;
+      case 'nag': return `Moi 6 saal laga choto bacha asey, ${patientName}! Apuni laga sweet companion.`;
       default: return `I am 6 years old, ${patientName}! Your cheerful little grandchild companion who loves spending time with you.`;
     }
   }
@@ -666,6 +726,10 @@ function getContextualFallback(
   if (lower.includes('walk') || lower.includes('tahalne') || lower.includes('टहल') || lower.includes('घूम') || lower.includes('garden') || lower.includes('বাগিচা') || lower.includes('ফুলনি')) {
     switch (lang) {
       case 'hi': return `शाम 5:45 बजे रिया के साथ बालकनी में टहलने का समय तय है, ${patientName}, जब धूप हल्की और हवा सुहानी होगी!`;
+      case 'bn': return `সন্ধ্যা ৫:৪৫ এ রিয়ার সাথে বারান্দায় হাঁটার সময় ঠিক করা আছে, ${patientName}, যখন বাতাস খুব আরামদায়ক হবে!`;
+      case 'as': return `গধূলি ৫:৪৫ বজাত ৰিয়াৰ সৈতে বেলকনীত খোজ কঢ়াৰ সময় নিৰ্ধাৰণ কৰা হৈছে, ${patientName}!`;
+      case 'mni': return `নুমিদাং পুং ৫:৪৫ দা রিয়াগা লোয়ননা চৎথোক-চৎশিন তৌবগী মতম্নি, ${patientName}!`;
+      case 'nag': return `Beli 5:45 PM te Riya logot balcony te walk koribo somoy asey, ${patientName}!`;
       default: return `Our gentle balcony garden walk with Riya is scheduled for 5:45 PM when the weather is cool and pleasant, ${patientName}!`;
     }
   }
@@ -682,6 +746,8 @@ function getContextualFallback(
       case 'hi': return `${patientName}, आपने पूछा: "${cleanTopic}"। यह बहुत अच्छा सवाल है! हमारे घर में सब कुछ बहुत सुरक्षित और व्यवस्थित है। इस बारे में हम शाम को रिया से भी बात करेंगे। क्या आप थोड़ा पानी पिएंगी?`;
       case 'as': return `${patientName}, আপুনি সুধিলে: "${cleanTopic}"। এইটো বৰ ভাল প্ৰশ্ন! আমাৰ ঘৰত সকলো শান্তিপূৰ্ণ আৰু সুৰক্ষিতভাৱে চলি আছে। এই বিষয়ে আমি গধূলি ৰিয়াৰ লগতো কথা পাতিম।`;
       case 'bn': return `${patientName}, আপনি জানতে চাইলেন: "${cleanTopic}"। খুব সুন্দর প্রশ্ন! আমাদের ঘরে সবকিছু খুব সুন্দর ও নিরাপদে চলছে। সন্ধ্যায় রিয়া এলে আমরা এ নিয়ে ওর সঙ্গেও কথা বলব।`;
+      case 'mni': return `${patientName}, অদোমনা হংবীরি: "${cleanTopic}"। য়াম্না ফবা ৱাহংনি! ঐখোয়গী য়ুম অসিদা খুদিংমক সুৰক্ষিত ওইনা লৈরি।`;
+      case 'nag': return `${patientName}, apuni hudhise: "${cleanTopic}"। Eitu bhal sawal asey! Ghor te sob bhal aru safe asey. Riya logot bhi kotha kobi.`;
       default: return `Regarding "${cleanTopic}", ${patientName}: everything at home is calm, safe, and on track. Let's also discuss this with Riya when she visits this evening! Would you like a warm sip of water?`;
     }
   }
@@ -717,6 +783,26 @@ function getContextualFallback(
       `আসুন আমরা একসাথে একটা শান্ত গভীর শ্বাস নিই, ${patientName}। আমি আপনার পাশেই আছি।`
     ];
     return bnOptions[variationIndex];
+  }
+
+  if (lang === 'mni') {
+    const mniOptions = [
+      `ঐহাক্না অদোমগী ৱাফম অসি য়াম্না নুংশিনা তারি, ${patientName}। অদোমগা লৈবা অসিদা ঐহাক নুংঙাই।`,
+      `অদোমনা হায়বীরিবা অসি অচুম্বনি, ${patientName}। ঙসিগী নুমিৎ অসি য়াম্না শান্ত ওইনা লেনখ্রে।`,
+      `অদোমগী মীনোক অদু উবদা ঐহাক্কী থম্মোয় নুংঙাইহল্লি, ${patientName}।`,
+      `ঐখোয় পুন্না তপ্না ৱাখল থৌসি, ${patientName}। ঐহাক অদোমগা সদায় লৈরি।`
+    ];
+    return mniOptions[variationIndex];
+  }
+
+  if (lang === 'nag') {
+    const nagOptions = [
+      `Moi apuni laga kotha pura mon pora suni asey, ${patientName}। Apuni bhal pora kotha kobo parey.`,
+      `Apuni ekdom thik koise, ${patientName}। Aji laga din apuni logot bishi peaceful asey.`,
+      `Apuni laga khushi mukh sabhi bhal lagey, ${patientName}। Moi sadaa apuni logot asey.`,
+      `Ahibi sob mili ekta calm breath loi lohi, ${patientName}। Apuni sob bhal korise.`
+    ];
+    return nagOptions[variationIndex];
   }
 
   if (lang === 'es') {
@@ -828,6 +914,7 @@ CORE CAPABILITIES & PERSONALITY:
 - CRITICAL: You have FULL, REAL-TIME access to all live patient status, daily logs, vital indicators, medication history, cognitive scores, and doctor schedules. Always cite the exact real-time details from below when the caregiver asks!
 - NEVER say "I don't have access to the patient's data" or "I am just an AI". You ARE their dedicated SANGPA assistant with live clinical logs.
 - When asked clinical or behavioral questions (e.g. sundowning, agitation, confusion, repetitive questions, nutrition, memory games, sleep hygiene), provide expert, evidence-based dementia guidance tailored to Mild Cognitive Impairment (MCI Stage 2).
+- CRITICAL LANGUAGE RULE: The user/caregiver selected language is "${patientContext.language}". You MUST communicate in this language. If Assamese (as) is selected, reply strictly in Assamese. If Bengali (bn), reply in Bengali. If Manipuri (mni), reply in Manipuri. If Nagamese (nag), reply in Nagamese. If Hindi (hi), reply in Hindi. If English (en), reply in English. NEVER respond in Hindi when Assamese, Bengali, Manipuri, or Nagamese is selected!
 
 === LIVE REAL-TIME PATIENT RECORD: ${patientContext.patientName.toUpperCase()} ===
 • Full Name: ${patientContext.patientName} (Preferred Name: ${patientContext.preferredName}), Age: ${patientContext.age}

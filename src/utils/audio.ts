@@ -1,5 +1,6 @@
-// SANGPA Web Audio API Sound Synthesizer and ElevenLabs Suhana J Voice Integration
+// SANGPA Web Audio API Sound Synthesizer, OpenAI TTS, and Multilingual Audio Asset Engine
 import { elevenLabsService } from '../services/elevenlabs';
+import { getOpenAIApiKey } from '../services/openai';
 import { LanguageCode } from '../types';
 
 const mapLangToCode = (lang: string): LanguageCode => {
@@ -14,6 +15,50 @@ const mapLangToCode = (lang: string): LanguageCode => {
 };
 
 const detectScriptLanguage = (text: string, fallbackLang: LanguageCode): LanguageCode => {
+  // If fallbackLang is already explicitly specified as a regional language, strictly preserve it
+  if (fallbackLang === 'as' || fallbackLang === 'mni' || fallbackLang === 'bn') {
+    // If text contains Eastern Nagari script characters, refine between as/mni/bn
+    if (/[\u0980-\u09FF]/.test(text)) {
+      if (
+        /[\u09F0\u09F1]/.test(text) ||
+        text.includes('অসমীয়া') ||
+        text.includes('চাংপা') ||
+        text.includes('আইতা') ||
+        text.includes('সেউজীয়া') ||
+        text.includes('নমস্কাৰ') ||
+        text.includes('বুটাম') ||
+        text.includes('সাজু')
+      ) {
+        return 'as';
+      }
+      if (
+        text.includes('মৈতৈলোন্') ||
+        text.includes('খুরুমজরি') ||
+        text.includes('তরাম্না') ||
+        text.includes('শেম-শারে') ||
+        text.includes('বটনদু')
+      ) {
+        return 'mni';
+      }
+      if (
+        text.includes('বাংলা') ||
+        text.includes('সাংপা') ||
+        text.includes('দিদিমা') ||
+        text.includes('নমস্কার') ||
+        text.includes('বোতামটি') ||
+        text.includes('প্রস্তুত')
+      ) {
+        return 'bn';
+      }
+      return fallbackLang;
+    }
+    return fallbackLang;
+  }
+
+  if (fallbackLang === 'nag') {
+    return 'nag';
+  }
+
   // Eastern Nagari script (Assamese, Bengali, Manipuri)
   if (/[\u0980-\u09FF]/.test(text)) {
     if (
@@ -47,13 +92,11 @@ const detectScriptLanguage = (text: string, fallbackLang: LanguageCode): Languag
     ) {
       return 'bn';
     }
-    if (fallbackLang === 'as') return 'as';
-    if (fallbackLang === 'mni') return 'mni';
     return 'bn';
   }
 
-  // Devanagari script (Hindi)
-  if (/[\u0900-\u097F]/.test(text)) {
+  // Devanagari letters ONLY (excluding Danda \u0964 and double Danda \u0965 used across Indian scripts)
+  if (/[\u0901-\u0963\u0966-\u097F]/.test(text)) {
     return 'hi';
   }
 
@@ -402,48 +445,58 @@ class AudioManager {
     const isPreferredFemale = (name: string) => this.isExplicitlyFemale(name) || name.toLowerCase().includes('natural');
 
     const langPrefix = lang.slice(0, 2).toLowerCase();
+    const isHindiTarget = langPrefix === 'hi';
+
+    // If target language is NOT Hindi, strictly exclude Hindi voices (e.g. Swara, Kalpana)
+    // so they are never used as fallbacks for Assamese, Bengali, Manipuri, Nagamese, etc.
+    const candidateVoices = isHindiTarget
+      ? nonMaleVoices
+      : nonMaleVoices.filter(v => 
+          !v.lang.toLowerCase().startsWith('hi') && 
+          !v.name.toLowerCase().includes('swara') && 
+          !v.name.toLowerCase().includes('kalpana')
+        );
 
     // 1. Preferred female voice in matching language (e.g. Heera for en-IN, Swara for hi-IN)
-    let match = nonMaleVoices.find(v => 
+    let match = candidateVoices.find(v => 
       v.lang.toLowerCase().startsWith(langPrefix) && isPreferredFemale(v.name)
     );
     if (match) return match;
 
     // 2. Eastern Nagari Script voices for Assamese (as) and Manipuri (mni)
-    if (langPrefix === 'as' || lang === 'as' || lang === 'mni' || langPrefix === 'mn') {
-      match = nonMaleVoices.find(v => v.lang.toLowerCase().startsWith('bn') && isPreferredFemale(v.name));
+    if (langPrefix === 'as' || lang === 'as' || lang === 'mni' || langPrefix === 'mn' || langPrefix === 'bn') {
+      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('bn') && isPreferredFemale(v.name));
       if (match) return match;
-      match = nonMaleVoices.find(v => v.lang.toLowerCase().startsWith('bn'));
-      if (match) return match;
-    }
-
-    // 3. English preferred female voice (Heera, Zira, Jenny, Aria, Samantha)
-    if (langPrefix === 'en' || lang === 'nag' || lang === 'as' || lang === 'mni') {
-      // Prioritize Indian English female first (Heera, Neerja), then standard female (Zira, Jenny, Aria, Samantha)
-      match = nonMaleVoices.find(v => v.name.toLowerCase().includes('heera'));
-      if (match) return match;
-      match = nonMaleVoices.find(v => v.name.toLowerCase().includes('neerja'));
-      if (match) return match;
-      match = nonMaleVoices.find(v => v.name.toLowerCase().includes('zira'));
-      if (match) return match;
-      match = nonMaleVoices.find(v => v.name.toLowerCase().includes('jenny'));
-      if (match) return match;
-      match = nonMaleVoices.find(v => v.name.toLowerCase().includes('aria'));
-      if (match) return match;
-      match = nonMaleVoices.find(v => v.lang.toLowerCase().startsWith('en') && isPreferredFemale(v.name));
+      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('bn'));
       if (match) return match;
     }
 
-    // 3. Any non-male voice matching the language prefix
-    match = nonMaleVoices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+    // 3. English preferred female voice (Heera, Neerja, Zira, Jenny, Aria, Samantha)
+    if (langPrefix === 'en' || lang === 'nag' || lang === 'as' || lang === 'mni' || langPrefix === 'bn') {
+      match = candidateVoices.find(v => v.name.toLowerCase().includes('heera'));
+      if (match) return match;
+      match = candidateVoices.find(v => v.name.toLowerCase().includes('neerja'));
+      if (match) return match;
+      match = candidateVoices.find(v => v.name.toLowerCase().includes('zira'));
+      if (match) return match;
+      match = candidateVoices.find(v => v.name.toLowerCase().includes('jenny'));
+      if (match) return match;
+      match = candidateVoices.find(v => v.name.toLowerCase().includes('aria'));
+      if (match) return match;
+      match = candidateVoices.find(v => v.lang.toLowerCase().startsWith('en') && isPreferredFemale(v.name));
+      if (match) return match;
+    }
+
+    // 4. Any non-male voice matching the language prefix
+    match = candidateVoices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
     if (match) return match;
 
-    // 4. Any preferred female voice in any dialect
-    match = nonMaleVoices.find(v => isPreferredFemale(v.name));
+    // 5. Any preferred female voice in candidateVoices (safe dialects only, never Hindi for non-Hindi)
+    match = candidateVoices.find(v => isPreferredFemale(v.name));
     if (match) return match;
 
-    // 5. Any non-male voice
-    if (nonMaleVoices.length > 0) return nonMaleVoices[0];
+    // 6. Any candidate non-male voice
+    if (candidateVoices.length > 0) return candidateVoices[0];
 
     return undefined;
   }
@@ -464,11 +517,11 @@ class AudioManager {
       (t.includes('সবুজ বোতাম') || (t.includes('বোতাম') && (t.includes('নির্দেশনা') || t.includes('সাদা বোতাম') || t.includes('স্বাগতম') || t.includes('ভালোবাসা')))) ||
       (t.includes('বটনদু') && (t.includes('অশেংবা') || t.includes('পাউতাক') || t.includes('তরাম্না') || t.includes('অঙৌবা বটনদু')))
     ) {
-      if (langCode === 'hi' || /[\u0900-\u097F]/.test(text)) return '/assets/voice_hi_opening_instructions.mp3';
       if (langCode === 'as') return '/assets/voice_as_opening_instructions.mp3';
       if (langCode === 'bn') return '/assets/voice_bn_opening_instructions.mp3';
       if (langCode === 'mni') return '/assets/voice_mni_opening_instructions.mp3';
       if (langCode === 'nag') return '/assets/voice_nag_opening_instructions.mp3';
+      if (langCode === 'hi' || /[\u0901-\u0963\u0966-\u097F]/.test(text)) return '/assets/voice_hi_opening_instructions.mp3';
       return '/assets/voice_en_opening_instructions.mp3';
     }
 
@@ -534,7 +587,7 @@ class AudioManager {
     }
 
     // 6. Exact Hindi Audio Matches (Devanagari script)
-    if (langCode === 'hi' || /[\u0900-\u097F]/.test(text)) {
+    if (langCode === 'hi' || (!['as', 'bn', 'mni', 'nag', 'en', 'es'].includes(langCode) && /[\u0901-\u0963\u0966-\u097F]/.test(text))) {
       if (t.includes('हिन्दी में तैयार') || t === 'तैयार है' || t.includes('भाषा चुनी')) {
         return '/assets/voice_hi_greeting.mp3';
       }
@@ -577,7 +630,7 @@ class AudioManager {
     });
   }
 
-  // Text-To-Speech powered by real-time dynamic child voice synthesis with zero delay
+  // Text-To-Speech powered by real-time dynamic voice synthesis
   async speak(text: string, lang = 'en-IN', onEnd?: () => void) {
     if (this.isMuted || !text || !text.trim()) {
       if (onEnd) setTimeout(onEnd, 1500);
@@ -603,30 +656,9 @@ class AudioManager {
       return;
     }
 
-    // 3. Try ElevenLabs Multilingual v2 with configured Voice ID (process.env.ELEVENLABS_VOICE_ID or fallback 5f1FjpWl2X8UqTlgo9Ov)
-    if (elevenLabsService.hasApiKey()) {
-      try {
-        const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
-        if (audioUrl) {
-          this.dynamicTtsCache.set(cacheKey, audioUrl);
-          await this.playAudioAsset(audioUrl, onEnd);
-          return;
-        }
-      } catch (err: any) {
-        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
-          console.error(
-            '[ElevenLabs HTTP 402 Payment Required] ElevenLabs account credit limit or tier restriction reached. Browser speech fallback suppressed per configuration:',
-            err.message
-          );
-          if (onEnd) onEnd();
-          return; // DO NOT bypass, DO NOT fall back to browser speech
-        }
-        console.warn('[ElevenLabs Synthesis Fallback]', err);
-      }
-    }
-
-    // 4. Dynamic High-Fidelity Companion Voice Synthesis via /api/tts (ElevenLabs or Suhana J child neural)
+    // 3. Dynamic Voice Synthesis via serverless endpoint /api/tts (OpenAI TTS model tts-1 & ElevenLabs)
     try {
+      const openAiKey = getOpenAIApiKey();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
       const res = await fetch('/api/tts', {
@@ -635,22 +667,13 @@ class AudioManager {
         body: JSON.stringify({ 
           text, 
           lang: langCode,
+          openAiApiKey: openAiKey || undefined,
           voiceId: elevenLabsService.getVoiceId(),
-          apiKey: elevenLabsService.getApiKey()
+          apiKey: elevenLabsService.getApiKey() || (openAiKey ? openAiKey : undefined)
         }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-
-      if (res.status === 402) {
-        const errJson = await res.json().catch(() => ({}));
-        console.error(
-          '[ElevenLabs HTTP 402 Payment Required] Endpoint returned HTTP 402: Account credit exhausted. Browser speech fallback suppressed per configuration.',
-          errJson
-        );
-        if (onEnd) onEnd();
-        return; // DO NOT bypass, DO NOT fall back to browser speech
-      }
 
       if (res.ok) {
         const blob = await res.blob();
@@ -665,8 +688,59 @@ class AudioManager {
       console.warn('[TTS API Endpoint Notice]', err);
     }
 
-    // 5. Emergency offline browser acoustic child companion speech
-    console.warn('[Voice Engine Fallback] ElevenLabs TTS request failed; using emergency browser speech synthesis.');
+    // 4. Direct Client-side OpenAI TTS if key is present in client settings/env
+    const clientOpenAiKey = getOpenAIApiKey();
+    if (clientOpenAiKey && clientOpenAiKey.length > 10) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
+        const oaiRes = await fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${clientOpenAiKey}`
+          },
+          body: JSON.stringify({
+            model: 'tts-1',
+            input: text.trim(),
+            voice: 'nova'
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (oaiRes.ok) {
+          const blob = await oaiRes.blob();
+          if (blob.size > 200) {
+            const audioUrl = URL.createObjectURL(blob);
+            this.dynamicTtsCache.set(cacheKey, audioUrl);
+            await this.playAudioAsset(audioUrl, onEnd);
+            return;
+          }
+        }
+      } catch (clientTtsErr) {
+        console.warn('[OpenAI Direct TTS Client Notice]', clientTtsErr);
+      }
+    }
+
+    // 5. Try ElevenLabs Multilingual v2 directly if configured
+    if (elevenLabsService.hasApiKey()) {
+      try {
+        const audioUrl = await elevenLabsService.synthesizeSpeech(text, langCode);
+        if (audioUrl) {
+          this.dynamicTtsCache.set(cacheKey, audioUrl);
+          await this.playAudioAsset(audioUrl, onEnd);
+          return;
+        }
+      } catch (err: any) {
+        if (err?.name === 'ElevenLabsPaymentRequiredError' || err?.status === 402) {
+          if (onEnd) onEnd();
+          return;
+        }
+      }
+    }
+
+    // 6. Emergency offline browser acoustic child companion speech
     this.speakFallback(text, lang, onEnd);
   }
 
